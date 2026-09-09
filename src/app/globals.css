@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root,
+.dark {
+  --background: #0a0a0b;
+  --foreground: #ededec;
+  --surface: #111113;
+  --surface-2: #1a1a1d;
+  --border: #26262a;
+  --muted: #8a8a90;
+  --accent: #ff5a3c;
+  --grid-line: rgba(255, 255, 255, 0.045);
+}
+
+.light {
+  --background: #fafafa;
+  --foreground: #131314;
+  --surface: #ffffff;
+  --surface-2: #f2f2f3;
+  --border: #e4e4e6;
+  --muted: #6b6b70;
+  --accent: #e2481f;
+  --grid-line: rgba(0, 0, 0, 0.05);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 999px;
+  border: 2px solid var(--background);
+}
+
+.font-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Simple Icons are baked-in solid colors (served as <img>), so brand marks
+   like GitHub's near-black logo need inverting to stay visible in dark mode. */
+.icon-mono {
+  filter: grayscale(1);
+}
+.dark .icon-mono {
+  filter: grayscale(1) invert(1);
+}
+
+/* Disable the default cross-fade so ThemeToggle's circular reveal is the only
+   animation when switching between light and dark mode. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+.prose-content p {
+  margin-bottom: 0.75em;
+}
+.prose-content p:last-child {
+  margin-bottom: 0;
+}
+.prose-content ul,
+.prose-content ol {
+  margin: 0.5em 0 0.75em 1.25em;
+}
+.prose-content ul {
+  list-style: disc;
+}
+.prose-content ol {
+  list-style: decimal;
+}
+.prose-content li {
+  margin-bottom: 0.25em;
+}
+.prose-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-content strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
 }
