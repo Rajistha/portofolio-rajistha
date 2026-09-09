@@ -44,7 +44,9 @@ create table if not exists projects (
   title text not null,
   slug text not null unique,
   summary text not null default '',
+  summary_en text,
   description text not null default '',
+  description_en text,
   image_url text,
   live_url text,
   repo_url text,
@@ -52,6 +54,10 @@ create table if not exists projects (
   sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
+
+-- Safe to re-run: adds the columns if this schema was already applied before they existed
+alter table projects add column if not exists summary_en text;
+alter table projects add column if not exists description_en text;
 
 -- Join table: which tech stack items were used on which project
 create table if not exists project_tech_stacks (

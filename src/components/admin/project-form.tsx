@@ -65,29 +65,55 @@ export function ProjectForm({
         </div>
       </div>
 
-      <div>
-        <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
-          Summary (shown on the card)
-        </label>
-        <textarea
-          name="summary"
-          rows={2}
-          required
-          defaultValue={project?.summary}
-          className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
+            Summary — Indonesia (shown on the card)
+          </label>
+          <textarea
+            name="summary"
+            rows={2}
+            required
+            defaultValue={project?.summary}
+            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
+            Summary — English
+          </label>
+          <textarea
+            name="summary_en"
+            rows={2}
+            defaultValue={project?.summary_en ?? ""}
+            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
-          Full description
-        </label>
-        <textarea
-          name="description"
-          rows={4}
-          defaultValue={project?.description}
-          className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
+            Full description — Indonesia
+          </label>
+          <textarea
+            name="description"
+            rows={4}
+            defaultValue={project?.description}
+            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
+            Full description — English
+          </label>
+          <textarea
+            name="description_en"
+            rows={4}
+            defaultValue={project?.description_en ?? ""}
+            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+          />
+        </div>
       </div>
 
       <ImageUploader

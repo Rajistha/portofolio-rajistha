@@ -8,16 +8,17 @@ import { useLanguage } from "@/components/language-provider";
 import type { Project } from "@/types/database";
 
 export function ProjectCard({ project }: { project: Project }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const summary = language === "en" ? project.summary_en || project.summary : project.summary;
 
   return (
     <RevealStaggerItem>
       <motion.article
         whileHover={{ y: -6 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className="group relative overflow-hidden rounded-lg border border-border bg-surface"
+        className="group relative rounded-lg border border-border bg-surface"
       >
-        <div className="relative aspect-16/10 w-full overflow-hidden bg-surface-2">
+        <div className="relative aspect-16/10 w-full overflow-hidden rounded-t-lg bg-surface-2">
           {project.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -74,7 +75,7 @@ export function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
 
-          <p className="mb-5 text-sm leading-relaxed text-muted">{project.summary}</p>
+          <p className="mb-5 text-sm leading-relaxed text-muted">{summary}</p>
 
           {project.tech_stacks && project.tech_stacks.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">

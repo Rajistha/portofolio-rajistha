@@ -29,7 +29,9 @@ export type Project = {
   title: string;
   slug: string;
   summary: string;
+  summary_en: string | null;
   description: string;
+  description_en: string | null;
   image_url: string | null;
   live_url: string | null;
   repo_url: string | null;
