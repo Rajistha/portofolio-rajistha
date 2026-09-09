@@ -23,9 +23,8 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "600", "700"],
 });
 
-const defaultTitle = "Puja Rajistha — Front-End Developer";
-const defaultDescription =
-  "Front-end developer portfolio — crafting fast, elegant, and accessible web experiences.";
+const defaultTitle = "Puja Rajistha";
+const defaultDescription = "Front-end developer portfolio — crafting fast, elegant, and accessible web experiences.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -61,11 +60,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
-    >
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}>
       <head>
         {/* Preload the hero lanyard's heaviest asset so it's already in
             flight by the time the 3D component's JS chunk finishes loading. */}
