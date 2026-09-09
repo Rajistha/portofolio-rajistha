@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/actions/require-auth";
 import { deleteStorageFile } from "@/lib/actions/storage";
+import { findUnsafeUrl } from "@/lib/actions/validate-url";
 
 export type ActionResult = { error?: string; id?: string };
 
@@ -41,6 +42,12 @@ export async function createProject(formData: FormData): Promise<ActionResult> {
   const { techStackIds, ...project } = parseProjectForm(formData);
 
   if (!project.title) return { error: "Title is required." };
+  const urlError = findUnsafeUrl({
+    image_url: project.image_url,
+    live_url: project.live_url,
+    repo_url: project.repo_url,
+  });
+  if (urlError) return { error: urlError };
 
   const { data, error } = await supabase.from("projects").insert(project).select("id").single();
   if (error) return { error: error.message };
@@ -65,6 +72,12 @@ export async function updateProject(projectId: string, formData: FormData): Prom
   const { techStackIds, ...project } = parseProjectForm(formData);
 
   if (!project.title) return { error: "Title is required." };
+  const urlError = findUnsafeUrl({
+    image_url: project.image_url,
+    live_url: project.live_url,
+    repo_url: project.repo_url,
+  });
+  if (urlError) return { error: urlError };
 
   const { data: existing } = await supabase
     .from("projects")

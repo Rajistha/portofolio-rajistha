@@ -7,10 +7,12 @@ import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
+import { useDismissableOverlay } from "@/hooks/use-dismissable-overlay";
 
 export function Navbar() {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
+  useDismissableOverlay(open, () => setOpen(false));
 
   const links = [
     { href: "#about", label: t.nav.about },

@@ -320,14 +320,25 @@ function Band({
 
 export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const isDark = resolvedTheme !== "light";
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+
+  useEffect(() => {
+    // next-themes only resolves the real theme after mount; this avoids a
+    // one-frame flash of the wrong strap/clip colors for returning
+    // light-mode visitors.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="relative h-full w-full">

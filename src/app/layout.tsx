@@ -23,7 +23,7 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "600", "700"],
 });
 
-const defaultTitle = "Your Name — Front-End Developer";
+const defaultTitle = "Puja Rajistha — Front-End Developer";
 const defaultDescription =
   "Front-end developer portfolio — crafting fast, elegant, and accessible web experiences.";
 
@@ -31,16 +31,17 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: defaultTitle,
-    template: "%s — Your Name",
+    template: "%s — Rajistha",
   },
   description: defaultDescription,
+  keywords: ["Rajistha", "Puja Rajistha", "Front-End Developer", "Web Developer", "Portfolio"],
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "Your Name",
+    siteName: "Rajistha",
     title: defaultTitle,
     description: defaultDescription,
   },
@@ -70,7 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             flight by the time the 3D component's JS chunk finishes loading. */}
         <link rel="preload" href="/lanyard/card.glb" as="fetch" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-accent/30 selection:text-white">
+      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-accent/30 selection:text-foreground">
         <a
           href="#main"
           className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-100 focus-visible:rounded-md focus-visible:bg-foreground focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-background"

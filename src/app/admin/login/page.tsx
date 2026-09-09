@@ -61,6 +61,7 @@ export default function AdminLoginPage() {
             </label>
             <input
               type="email"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -74,6 +75,7 @@ export default function AdminLoginPage() {
             </label>
             <input
               type="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -82,7 +84,11 @@ export default function AdminLoginPage() {
             />
           </div>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && (
+            <p role="alert" aria-live="assertive" className="text-sm text-red-400">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"

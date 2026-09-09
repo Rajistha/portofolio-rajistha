@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard, FolderKanban, Sparkles, UserRound, LogOut, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useDismissableOverlay } from "@/hooks/use-dismissable-overlay";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +24,7 @@ export function AdminSidebar({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  useDismissableOverlay(open, () => setOpen(false));
 
   const nav = (
     <nav className="flex flex-1 flex-col gap-1">
@@ -104,7 +106,7 @@ export function AdminSidebar({
               transition={{ duration: 0.2 }}
               onClick={() => setOpen(false)}
               aria-hidden
-              className="fixed inset-0 top-14.25 z-30 bg-black/40 sm:hidden"
+              className="fixed inset-0 top-14.25 z-30 bg-foreground/40 sm:hidden"
             />
             <motion.div
               initial={{ opacity: 0, y: -8 }}

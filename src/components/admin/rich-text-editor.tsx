@@ -18,6 +18,7 @@ import {
   Strikethrough,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isSafeUrl } from "@/lib/actions/validate-url";
 
 export function RichTextEditor({
   name,
@@ -141,7 +142,12 @@ export function RichTextEditor({
                 return;
               }
               const url = window.prompt("Link URL");
-              if (url) editor.chain().focus().setLink({ href: url }).run();
+              if (!url) return;
+              if (!isSafeUrl(url)) {
+                window.alert("Please enter a valid http:// or https:// URL.");
+                return;
+              }
+              editor.chain().focus().setLink({ href: url }).run();
             }}
             label="Link"
           >

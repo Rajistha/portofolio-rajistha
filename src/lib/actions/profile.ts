@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/actions/require-auth";
 import { deleteStorageFile } from "@/lib/actions/storage";
+import { findUnsafeUrl } from "@/lib/actions/validate-url";
 import type { ActionResult } from "@/lib/actions/projects";
 
 export async function updateProfile(profileId: string, formData: FormData): Promise<ActionResult> {
@@ -25,6 +26,15 @@ export async function updateProfile(profileId: string, formData: FormData): Prom
     cv_url: String(formData.get("cv_url") ?? "").trim() || null,
     updated_at: new Date().toISOString(),
   };
+
+  const urlError = findUnsafeUrl({
+    avatar_url: payload.avatar_url,
+    github_url: payload.github_url,
+    linkedin_url: payload.linkedin_url,
+    instagram_url: payload.instagram_url,
+    cv_url: payload.cv_url,
+  });
+  if (urlError) return { error: urlError };
 
   const { data: existing } = await supabase
     .from("profile")
