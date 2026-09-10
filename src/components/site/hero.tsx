@@ -12,7 +12,7 @@ const Lanyard = dynamic(() => import("@/components/site/lanyard").then((mod) => 
   loading: () => (
     <div
       aria-hidden
-      className="absolute top-[31%] right-16 h-56 w-40 -translate-y-1/2 animate-pulse rounded-2xl border border-border bg-surface-2"
+      className="lanyard-skeleton absolute top-[31%] right-16 h-56 w-40 -translate-y-1/2 rounded-2xl border border-border bg-surface-2"
     />
   ),
 });

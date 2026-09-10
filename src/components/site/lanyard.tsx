@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useTheme } from "next-themes";
-import { Canvas, extend, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { Canvas, extend, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Environment, Lightformer, useGLTF, useTexture } from "@react-three/drei";
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint, type RapierRigidBody } from "@react-three/rapier";
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
@@ -229,7 +229,14 @@ function Band({
     }
   }, [hovered, dragged]);
 
-  useFrame((state, delta) => {
+  useFrame((state, rawDelta) => {
+    // If a frame is skipped for a while (tab backgrounded, the theme-toggle
+    // pause, a slow device hiccup...) `rawDelta` can spike to seconds. Below,
+    // it feeds a lerp factor that isn't clamped to [0, 1] by THREE, so an
+    // oversized delta overshoots way past the target translation and the
+    // band visually flies apart. Cap it to a normal single-frame span.
+    const delta = Math.min(rawDelta, 1 / 30);
+
     if (dragged && card.current) {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera);
       dir.copy(vec).sub(state.camera.position).normalize();
@@ -248,7 +255,8 @@ function Band({
         if (!body) return;
         if (!body.lerped) body.lerped = new THREE.Vector3().copy(body.translation());
         const clampedDistance = Math.max(0.1, Math.min(1, body.lerped.distanceTo(body.translation())));
-        body.lerped.lerp(body.translation(), delta * (0 + clampedDistance * 50));
+        const lerpFactor = Math.min(1, delta * clampedDistance * 50);
+        body.lerped.lerp(body.translation(), lerpFactor);
       });
 
       curve.points[0].copy(j3.current.translation());
@@ -318,11 +326,31 @@ function Band({
   );
 }
 
+// Runs inside the Canvas. When the render loop resumes after being stopped
+// (frameloop "never" -> "always"), R3F's clock still measures real wall time,
+// so the next delta would equal the whole paused duration and throw the rope
+// physics into one huge catch-up step. Restarting the clock the instant the
+// pause ends makes that first resumed frame see a normal, small delta.
+function ClockResetOnResume({ transitioning }: { transitioning: boolean }) {
+  const { clock } = useThree();
+  const wasTransitioning = useRef(transitioning);
+
+  useEffect(() => {
+    if (wasTransitioning.current && !transitioning) {
+      clock.start();
+    }
+    wasTransitioning.current = transitioning;
+  }, [transitioning, clock]);
+
+  return null;
+}
+
 export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const isDark = resolvedTheme !== "light";
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const [transitioning, setTransitioning] = useState(false);
 
   useEffect(() => {
     // next-themes only resolves the real theme after mount; this avoids a
@@ -338,6 +366,23 @@ export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    // Stop this canvas's rendering (and physics) while the dark/light mode
+    // circular reveal plays — its ~30fps, GPU-heavy draw work otherwise
+    // competes with the transition for frames and makes the wipe choppy.
+    // ClockResetOnResume prevents the accumulated pause time from showing up
+    // as one huge delta (which used to fling the rope apart) once rendering
+    // resumes.
+    const handleStart = () => setTransitioning(true);
+    const handleEnd = () => setTransitioning(false);
+    window.addEventListener("theme-transition-start", handleStart);
+    window.addEventListener("theme-transition-end", handleEnd);
+    return () => {
+      window.removeEventListener("theme-transition-start", handleStart);
+      window.removeEventListener("theme-transition-end", handleEnd);
+    };
+  }, []);
+
   if (!mounted) return null;
 
   return (
@@ -346,11 +391,13 @@ export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
         camera={{ position: [0, CAMERA_Y, CAMERA_DISTANCE], rotation: [0, 0, 0], fov: CAMERA_FOV }}
         dpr={[1, isMobile ? 1.5 : 2]}
         gl={{ alpha: true }}
+        frameloop={transitioning ? "never" : "always"}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 0)}
       >
+        <ClockResetOnResume transitioning={transitioning} />
         <ambientLight intensity={Math.PI} />
         <directionalLight position={[3, 5, 6]} intensity={0.6} />
-        <Physics gravity={[0, -40, 0]} timeStep={isMobile ? 1 / 30 : 1 / 60}>
+        <Physics gravity={[0, -40, 0]} timeStep={isMobile ? 1 / 30 : 1 / 60} paused={transitioning}>
           <Suspense fallback={null}>
             <Band isMobile={isMobile} photoUrl={photoUrl ?? ""} isDark={isDark} />
           </Suspense>

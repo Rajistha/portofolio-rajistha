@@ -75,7 +75,11 @@ export function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
 
-          <p className="mb-5 text-sm leading-relaxed text-muted">{summary}</p>
+          <div className="mb-5 max-h-[8.6rem] overflow-hidden transition-[max-height] duration-500 ease-in-out group-hover:max-h-160">
+            <p className="line-clamp-6 text-sm leading-relaxed text-muted group-hover:line-clamp-none">
+              {summary}
+            </p>
+          </div>
 
           {project.tech_stacks && project.tech_stacks.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">

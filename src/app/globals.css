@@ -93,6 +93,21 @@ body {
   filter: grayscale(1) invert(1);
 }
 
+/* Lanyard's 3D canvas loads async (no SSR); this delays the skeleton's
+   entrance so a fast load never flashes a bare gray box — it only becomes
+   visible once the wait is actually noticeable. */
+@keyframes skeleton-in {
+  0%, 55% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.lanyard-skeleton {
+  animation: skeleton-in 1.6s ease-in-out infinite;
+}
+
 /* Disable the default cross-fade so ThemeToggle's circular reveal is the only
    animation when switching between light and dark mode. */
 ::view-transition-old(root),
