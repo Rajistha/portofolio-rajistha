@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import type { ActionResult } from "@/lib/actions/projects";
@@ -63,8 +64,9 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-foreground px-6 py-2.5 text-sm font-medium text-background disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-2.5 text-sm font-medium text-background disabled:opacity-50"
       >
+        {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         {pending ? "Saving…" : "Save changes"}
       </button>
     </form>

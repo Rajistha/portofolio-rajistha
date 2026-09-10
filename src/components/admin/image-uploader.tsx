@@ -5,6 +5,18 @@ import { UploadCloud, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadImage } from "@/lib/actions/upload";
 
+// In production, an error thrown on the server (a body-size limit, a missing
+// env var, ...) reaches the client as React's generic, unreadable digest
+// message ("Minified React error #...; visit react.dev/errors/..."). Swap
+// that in for something an admin can actually act on.
+function friendlyErrorMessage(err: unknown): string {
+  const message = err instanceof Error ? err.message : "";
+  if (!message || /Minified React error/i.test(message)) {
+    return "Upload failed. The file may be too large, or something went wrong on the server — please try again.";
+  }
+  return message;
+}
+
 export function ImageUploader({
   name,
   label = "Image",
@@ -43,7 +55,7 @@ export function ImageUploader({
       setUrl(result.url);
       toast.success("Image uploaded.");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Upload failed unexpectedly.";
+      const message = friendlyErrorMessage(err);
       setError(message);
       toast.error(message);
     } finally {

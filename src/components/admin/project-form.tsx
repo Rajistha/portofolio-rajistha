@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { TechIcon } from "@/components/ui/tech-icon";
 import type { ActionResult } from "@/lib/actions/projects";
@@ -205,8 +206,9 @@ export function ProjectForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-foreground px-6 py-2.5 text-sm font-medium text-background disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-2.5 text-sm font-medium text-background disabled:opacity-50"
       >
+        {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         {pending ? "Saving…" : project ? "Save changes" : "Create project"}
       </button>
     </form>

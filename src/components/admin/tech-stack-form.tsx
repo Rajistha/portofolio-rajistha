@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { TechIcon } from "@/components/ui/tech-icon";
 import type { ActionResult } from "@/lib/actions/projects";
 
@@ -88,8 +89,12 @@ export function TechStackForm({
           disabled={pending}
           className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
         >
-          {preview.slug && (
-            <TechIcon slug={preview.slug} name={preview.name || preview.slug} color={preview.color || null} size={16} />
+          {pending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            preview.slug && (
+              <TechIcon slug={preview.slug} name={preview.name || preview.slug} color={preview.color || null} size={16} />
+            )
           )}
           {pending ? "Adding…" : "Add"}
         </button>
