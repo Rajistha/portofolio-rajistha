@@ -12,6 +12,7 @@ export function ContactSection({ profile }: { profile: Profile | null }) {
   return (
     <section id="contact" className="mx-auto max-w-5xl px-6 py-24">
       <Reveal>
+        <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 04. GET IN TOUCH</p>
         <h2 className="max-w-xl font-display text-3xl sm:text-4xl">{t.contact.title}</h2>
       </Reveal>
 

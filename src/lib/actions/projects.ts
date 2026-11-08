@@ -19,6 +19,9 @@ function slugify(input: string) {
 function parseProjectForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const techStackIds = formData.getAll("tech_stack_ids").map(String);
+  const rawStatus = String(formData.get("status") ?? "completed").trim();
+  const status: "completed" | "in_progress" =
+    rawStatus === "in_progress" ? "in_progress" : "completed";
 
   return {
     title,
@@ -32,6 +35,7 @@ function parseProjectForm(formData: FormData) {
     repo_url: String(formData.get("repo_url") ?? "").trim() || null,
     featured: formData.get("featured") === "on",
     sort_order: Number(formData.get("sort_order") ?? 0) || 0,
+    status,
     techStackIds,
   };
 }
@@ -51,10 +55,18 @@ export async function createProject(formData: FormData): Promise<ActionResult> {
   });
   if (urlError) return { error: urlError };
 
-  const { data, error } = await supabase.from("projects").insert(project).select("id").single();
+  let { data, error } = await supabase.from("projects").insert(project).select("id").single();
+  if (error && error.message.toLowerCase().includes("status")) {
+    // Graceful fallback if database migration hasn't been executed yet
+    const { status: _status, ...projectWithoutStatus } = project;
+    const retry = await supabase.from("projects").insert(projectWithoutStatus).select("id").single();
+    if (retry.error) return { error: retry.error.message };
+    data = retry.data;
+    error = null;
+  }
   if (error) return { error: error.message };
 
-  if (techStackIds.length > 0) {
+  if (techStackIds.length > 0 && data?.id) {
     const { error: linkError } = await supabase.from("project_tech_stacks").insert(
       techStackIds.map((tech_stack_id) => ({ project_id: data.id, tech_stack_id }))
     );
@@ -63,7 +75,7 @@ export async function createProject(formData: FormData): Promise<ActionResult> {
 
   revalidatePath("/");
   revalidatePath("/admin/projects");
-  return { id: data.id };
+  return { id: data?.id };
 }
 
 export async function updateProject(projectId: string, formData: FormData): Promise<ActionResult> {
@@ -87,7 +99,14 @@ export async function updateProject(projectId: string, formData: FormData): Prom
     .eq("id", projectId)
     .maybeSingle();
 
-  const { error } = await supabase.from("projects").update(project).eq("id", projectId);
+  let { error } = await supabase.from("projects").update(project).eq("id", projectId);
+  if (error && error.message.toLowerCase().includes("status")) {
+    // Graceful fallback if database migration hasn't been executed yet
+    const { status: _status, ...projectWithoutStatus } = project;
+    const retry = await supabase.from("projects").update(projectWithoutStatus).eq("id", projectId);
+    if (retry.error) return { error: retry.error.message };
+    error = null;
+  }
   if (error) return { error: error.message };
 
   if (existing?.image_url && existing.image_url !== project.image_url) {

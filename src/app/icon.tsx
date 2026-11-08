@@ -14,11 +14,14 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0a0a0b",
+          backgroundColor: "#111113",
           borderRadius: 8,
+          border: "1px solid #26262a",
           fontSize: 20,
-          fontWeight: 700,
+          fontWeight: 800,
           color: "#ff5a3c",
+          fontFamily: "sans-serif",
+          letterSpacing: "-0.05em",
         }}
       >
         R

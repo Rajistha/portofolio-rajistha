@@ -24,6 +24,8 @@ export type TechStack = {
   created_at: string;
 };
 
+export type ProjectStatus = "completed" | "in_progress";
+
 export type Project = {
   id: string;
   title: string;
@@ -37,6 +39,7 @@ export type Project = {
   repo_url: string | null;
   featured: boolean;
   sort_order: number;
+  status?: ProjectStatus;
   created_at: string;
   tech_stacks?: TechStack[];
 };

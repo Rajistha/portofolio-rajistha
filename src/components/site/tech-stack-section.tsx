@@ -12,6 +12,7 @@ export function TechStackSection({ techStacks }: { techStacks: TechStack[] }) {
   return (
     <section id="stack" className="mx-auto max-w-5xl px-6 py-24">
       <Reveal>
+        <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 02. TECH STACK</p>
         <h2 className="mb-14 font-display text-3xl sm:text-4xl">{t.stack.title}</h2>
       </Reveal>
 

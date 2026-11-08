@@ -58,6 +58,7 @@ create table if not exists projects (
 -- Safe to re-run: adds the columns if this schema was already applied before they existed
 alter table projects add column if not exists summary_en text;
 alter table projects add column if not exists description_en text;
+alter table projects add column if not exists status text not null default 'completed';
 
 -- Join table: which tech stack items were used on which project
 create table if not exists project_tech_stacks (

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Download } from "lucide-react";
 import { Typewriter } from "@/components/ui/typewriter";
 import { useLanguage } from "@/components/language-provider";
 import type { Profile } from "@/types/database";
@@ -29,7 +29,12 @@ export function Hero({ profile }: { profile: Profile | null }) {
 
       <div className="mx-auto grid w-full max-w-5xl items-center gap-8">
         <div className="relative z-10 grid gap-8 lg:max-w-xl">
-          <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }} className="flex items-center gap-2 text-sm text-muted">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="flex items-center gap-2 text-sm text-muted"
+          >
             {role}
           </motion.p>
 
@@ -70,8 +75,10 @@ export function Hero({ profile }: { profile: Profile | null }) {
                 href={profile.cv_url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm text-foreground/90 transition-colors hover:border-accent/60 hover:text-accent"
+                download
+                className="group inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm text-foreground/90 transition-colors hover:border-accent/60 hover:text-accent"
               >
+                <Download className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
                 {t.hero.downloadCv}
               </a>
             )}

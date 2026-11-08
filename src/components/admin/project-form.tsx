@@ -3,11 +3,25 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, Clock } from "lucide-react";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { TechIcon } from "@/components/ui/tech-icon";
 import type { ActionResult } from "@/lib/actions/projects";
 import type { Project, TechStack } from "@/types/database";
+
+function normalizeClientUrl(val: string): string {
+  const trimmed = val.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed.replace(/^http:\/\//i, "http://").replace(/^https:\/\//i, "https://");
+  }
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//i.test(trimmed)) {
+    if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+  }
+  return trimmed;
+}
 
 export function ProjectForm({
   action,
@@ -21,12 +35,24 @@ export function ProjectForm({
   const router = useRouter();
   const selectedIds = new Set(project?.tech_stacks?.map((t) => t.id));
   const [pending, setPending] = useState(false);
+  const [liveUrl, setLiveUrl] = useState(project?.live_url ?? "");
+  const [repoUrl, setRepoUrl] = useState(project?.repo_url ?? "");
+  const [status, setStatus] = useState<"completed" | "in_progress">(
+    project?.status ?? "completed"
+  );
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true);
 
     const formData = new FormData(e.currentTarget);
+    if (liveUrl.trim()) {
+      formData.set("live_url", normalizeClientUrl(liveUrl));
+    }
+    if (repoUrl.trim()) {
+      formData.set("repo_url", normalizeClientUrl(repoUrl));
+    }
+
     const result = await action(formData);
 
     setPending(false);
@@ -43,6 +69,7 @@ export function ProjectForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Title & Slug */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">Title</label>
@@ -66,6 +93,7 @@ export function ProjectForm({
         </div>
       </div>
 
+      {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
@@ -92,6 +120,7 @@ export function ProjectForm({
         </div>
       </div>
 
+      {/* Full description */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
@@ -117,25 +146,27 @@ export function ProjectForm({
         </div>
       </div>
 
-      <ImageUploader
-        name="image_url"
-        label="Project image"
-        bucket="project-images"
-        defaultValue={project?.image_url}
-      />
-
+      {/* Live & Repo URLs (placed before image uploader to enable instant auto-preview) */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
-            Live URL
+            Live URL (e.g. Vercel deployment)
           </label>
           <input
             name="live_url"
-            type="url"
-            defaultValue={project?.live_url ?? ""}
-            placeholder="https://example.com"
+            type="text"
+            inputMode="url"
+            value={liveUrl}
+            onChange={(e) => setLiveUrl(e.target.value)}
+            onBlur={() => {
+              if (liveUrl.trim()) setLiveUrl(normalizeClientUrl(liveUrl));
+            }}
+            placeholder="https://my-app.vercel.app"
             className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
           />
+          <p className="mt-1 text-[11px] text-muted">
+            Preview screenshot akan otomatis diambil dari URL ini jika gambar di bawah tidak di-upload.
+          </p>
         </div>
         <div>
           <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
@@ -143,14 +174,96 @@ export function ProjectForm({
           </label>
           <input
             name="repo_url"
-            type="url"
-            defaultValue={project?.repo_url ?? ""}
-            placeholder="https://github.com/..."
+            type="text"
+            inputMode="url"
+            value={repoUrl}
+            onChange={(e) => setRepoUrl(e.target.value)}
+            onBlur={() => {
+              if (repoUrl.trim()) setRepoUrl(normalizeClientUrl(repoUrl));
+            }}
+            placeholder="https://github.com/username/repo"
             className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
           />
+          <p className="mt-1 text-[11px] text-muted">
+            Jika link demo belum ada, banner kartu GitHub otomatis digunakan sebagai fallback.
+          </p>
         </div>
       </div>
 
+      {/* Image Uploader with dynamic live preview */}
+      <ImageUploader
+        name="image_url"
+        label="Project image (Opsional jika sudah mengisi Live URL)"
+        bucket="project-images"
+        defaultValue={project?.image_url}
+        liveUrl={liveUrl}
+        repoUrl={repoUrl}
+      />
+
+      {/* Project Status Selection */}
+      <div>
+        <label className="mb-2 block text-xs uppercase tracking-wide text-muted">
+          Project Status
+        </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
+              status === "completed"
+                ? "border-accent/60 bg-accent/5 shadow-xs"
+                : "border-border bg-surface hover:border-border/80"
+            }`}
+          >
+            <input
+              type="radio"
+              name="status"
+              value="completed"
+              checked={status === "completed"}
+              onChange={() => setStatus("completed")}
+              className="mt-0.5 text-accent accent-accent"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-accent" />
+                Completed / Selesai
+              </div>
+              <p className="mt-1 text-xs text-muted">
+                Proyek sudah selesai, dideploy, dan siap dipamerkan di portfolio.
+              </p>
+            </div>
+          </label>
+
+          <label
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
+              status === "in_progress"
+                ? "border-amber-500/60 bg-amber-500/5 shadow-xs"
+                : "border-border bg-surface hover:border-border/80"
+            }`}
+          >
+            <input
+              type="radio"
+              name="status"
+              value="in_progress"
+              checked={status === "in_progress"}
+              onChange={() => setStatus("in_progress")}
+              className="mt-0.5 text-amber-500 accent-amber-500"
+            />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 font-medium text-amber-500">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                </span>
+                In Progress / Sedang Dikerjakan
+              </div>
+              <p className="mt-1 text-xs text-muted">
+                Proyek sedang dalam pengerjaan aktif. Akan memiliki badge khusus di halaman utama.
+              </p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      {/* Tech stack */}
       <div>
         <label className="mb-2 block text-xs uppercase tracking-wide text-muted">
           Tech stack used
@@ -181,6 +294,7 @@ export function ProjectForm({
         )}
       </div>
 
+      {/* Featured & Order */}
       <div className="flex items-center gap-6">
         <label className="flex items-center gap-2 text-sm">
           <input
