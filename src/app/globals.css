@@ -42,6 +42,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -49,6 +51,9 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
 }
 
 :focus-visible {
@@ -63,16 +68,76 @@ body {
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite !important;
+}
+
+/* Cross-browser custom scrollbar — sleek macOS-style, strictly NO arrows, non-leaking */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
+  height: 6px;
 }
+
+/* Strictly hide all up/down/left/right arrows and buttons */
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:horizontal:decrement,
+::-webkit-scrollbar-button:horizontal:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent !important;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--surface-2);
-  border-radius: 999px;
-  border: 2px solid var(--background);
+  background: rgba(140, 140, 150, 0.3);
+  border-radius: 9999px;
+  border: none !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 140, 150, 0.55);
+}
+
+::-webkit-scrollbar-corner {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent dialog / modal overscroll chaining to page body */
+[role="dialog"],
+.modal-scroll,
+.overflow-y-auto {
+  overscroll-behavior: contain;
 }
 
 .font-display {
@@ -120,6 +185,22 @@ body {
 }
 ::view-transition-new(root) {
   z-index: 2;
+}
+
+.prose-content h2,
+.prose-content h3 {
+  color: var(--foreground);
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+.prose-content h2 {
+  font-size: 1.25rem;
+}
+.prose-content h3 {
+  font-size: 1.05rem;
+  color: var(--accent);
 }
 
 .prose-content p {

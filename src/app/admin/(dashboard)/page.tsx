@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FolderKanban, Sparkles, ArrowUpRight, Briefcase, MessageSquare, BarChart3, Link2, ExternalLink, Plus } from "lucide-react";
+import { FolderKanban, Cpu, ArrowUpRight, Briefcase, MessageSquare, BarChart3, Link2, ExternalLink, Plus } from "lucide-react";
 import { getProjects, getTechStacks, getExperiences, getTestimonials, getStats } from "@/lib/data";
 import { getShortLinks } from "@/lib/actions/links";
 
@@ -17,7 +17,7 @@ export default async function AdminDashboardPage() {
 
   const cards = [
     { label: "Projects", value: projects.length, href: "/admin/projects", icon: FolderKanban },
-    { label: "Tech Stack", value: techStacks.length, href: "/admin/tech-stack", icon: Sparkles },
+    { label: "Tech Stack", value: techStacks.length, href: "/admin/tech-stack", icon: Cpu },
     { label: "Rekam Jejak", value: experiences.length, href: "/admin/experiences", icon: Briefcase },
     { label: "Testimoni Klien", value: testimonials.length, href: "/admin/testimonials", icon: MessageSquare },
     { label: "Statistik Portofolio", value: statsData.length, href: "/admin/stats", icon: BarChart3 },

@@ -16,6 +16,9 @@ import {
   List,
   ListOrdered,
   Strikethrough,
+  Heading2,
+  Heading3,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isSafeUrl } from "@/lib/actions/validate-url";
@@ -25,10 +28,14 @@ export function RichTextEditor({
   name,
   label,
   defaultValue,
+  enableCaseStudyTemplate = false,
+  isEnglish = false,
 }: {
   name: string;
   label: string;
   defaultValue?: string | null;
+  enableCaseStudyTemplate?: boolean;
+  isEnglish?: boolean;
 }) {
   const [html, setHtml] = useState(defaultValue ?? "");
   const [linkInputOpen, setLinkInputOpen] = useState(false);
@@ -70,6 +77,8 @@ export function RichTextEditor({
       bold: ctx.editor?.isActive("bold") ?? false,
       italic: ctx.editor?.isActive("italic") ?? false,
       strike: ctx.editor?.isActive("strike") ?? false,
+      heading2: ctx.editor?.isActive("heading", { level: 2 }) ?? false,
+      heading3: ctx.editor?.isActive("heading", { level: 3 }) ?? false,
       bulletList: ctx.editor?.isActive("bulletList") ?? false,
       orderedList: ctx.editor?.isActive("orderedList") ?? false,
       link: ctx.editor?.isActive("link") ?? false,
@@ -106,6 +115,22 @@ export function RichTextEditor({
           >
             <Strikethrough className="h-4 w-4" />
           </ToolbarButton>
+          <div className="mx-1 h-5 w-px bg-border" aria-hidden />
+          <ToolbarButton
+            active={state?.heading2}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+            label="Heading 2"
+          >
+            <Heading2 className="h-4 w-4" />
+          </ToolbarButton>
+          <ToolbarButton
+            active={state?.heading3}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+            label="Heading 3"
+          >
+            <Heading3 className="h-4 w-4" />
+          </ToolbarButton>
+          <div className="mx-1 h-5 w-px bg-border" aria-hidden />
           <ToolbarButton
             active={state?.bulletList}
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
@@ -165,6 +190,25 @@ export function RichTextEditor({
           >
             <LinkIcon className="h-4 w-4" />
           </ToolbarButton>
+          {enableCaseStudyTemplate && (
+            <button
+              type="button"
+              onClick={() => {
+                const template = isEnglish
+                  ? `<h3>Problem & Challenges</h3><p>Describe the real-world challenges faced by the user or client before this project.</p><h3>Solution & Technical Architecture</h3><p>Explain the architecture, technology stack, and engineering approach used to solve the problem.</p><ul><li>Key architecture decision & database design</li><li>Performance, responsive UX, and security implementation</li></ul><h3>Outcomes & Impact</h3><ul><li>Measurable latency reduction or conversion improvement</li><li>Direct user satisfaction or operational efficiency</li></ul>`
+                  : `<h3>Masalah & Tantangan</h3><p>Tuliskan tantangan atau masalah nyata yang dihadapi pengguna/klien sebelum proyek ini dibangun.</p><h3>Solusi & Arsitektur Teknis</h3><p>Jelaskan pendekatan teknis, pemilihan stack arsitektur, dan bagaimana solusi tersebut menyelesaikan masalah.</p><ul><li>Arsitektur aplikasi dan integrasi sistem utama</li><li>Optimasi performa, keamanan, dan UX yang responsif</li></ul><h3>Dampak & Hasil</h3><ul><li>Peningkatan efisiensi waktu atau hasil terukur yang dicapai</li><li>Tingkat kepuasan klien atau kemudahan operasional</li></ul>`;
+
+                if (!html || html === "<p></p>" || window.confirm(isEnglish ? "Replace editor content with case study template?" : "Ganti konten editor dengan template studi kasus?")) {
+                  editor?.commands.setContent(template);
+                  setHtml(template);
+                }
+              }}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/20 transition-colors"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              {isEnglish ? "Insert Template" : "Sisipkan Template"}
+            </button>
+          )}
         </div>
         <EditorContent editor={editor} />
       </div>

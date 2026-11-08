@@ -24,11 +24,12 @@ export function ProjectCard({ project }: { project: Project }) {
 
   return (
     <>
-      <RevealStaggerItem>
+      <RevealStaggerItem className="h-full">
         <motion.article
           whileHover={{ y: -6 }}
-          transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          className="group relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface"
+          whileTap={{ scale: 0.985 }}
+          transition={{ type: "spring", stiffness: 350, damping: 25 }}
+          className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors duration-300 hover:border-accent/40 hover:shadow-xl hover:shadow-black/50"
         >
           <div
             onClick={() => setModalOpen(true)}
@@ -119,8 +120,8 @@ export function ProjectCard({ project }: { project: Project }) {
               </div>
             </div>
 
-            <div className="mb-5 max-h-[8.6rem] overflow-hidden transition-[max-height] duration-500 ease-in-out group-hover:max-h-160">
-              <p className="line-clamp-6 text-sm leading-relaxed text-muted group-hover:line-clamp-none">
+            <div className="mb-5">
+              <p className="line-clamp-3 text-sm leading-relaxed text-muted">
                 {summary}
               </p>
             </div>

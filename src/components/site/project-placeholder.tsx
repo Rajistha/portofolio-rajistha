@@ -6,7 +6,7 @@ import {
   Code2,
   Camera,
   ShoppingBag,
-  Sparkles,
+  FolderGit2,
   Layers,
   Smartphone,
   Cpu,
@@ -83,7 +83,7 @@ function getProjectIcon(title: string) {
     return ShoppingBag;
   }
   if (lower.includes("ai") || lower.includes("gpt") || lower.includes("bot") || lower.includes("brain") || lower.includes("smart")) {
-    return Sparkles;
+    return FolderGit2;
   }
   if (lower.includes("data") || lower.includes("sql") || lower.includes("db") || lower.includes("cloud")) {
     return Database;

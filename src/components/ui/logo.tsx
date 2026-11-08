@@ -14,12 +14,6 @@ export function Logo({
       className={`relative inline-flex items-center justify-center shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      {glow && (
-        <div
-          className="absolute inset-0 rounded-2xl bg-accent/35 blur-lg pointer-events-none animate-pulse"
-          aria-hidden="true"
-        />
-      )}
       <svg
         width={size}
         height={size}
@@ -38,9 +32,6 @@ export function Logo({
             <stop offset="50%" stopColor="#ff8a65" />
             <stop offset="100%" stopColor="#ff411f" />
           </linearGradient>
-          <filter id="r-soft-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#ff5a3c" floodOpacity="0.45" />
-          </filter>
         </defs>
 
         {/* Outer Tech Squircle Background */}
@@ -68,7 +59,7 @@ export function Logo({
         />
 
         {/* Futuristic R Geometry */}
-        <g filter="url(#r-soft-glow)">
+        <g>
           {/* Vertical Stem */}
           <rect
             x="24"

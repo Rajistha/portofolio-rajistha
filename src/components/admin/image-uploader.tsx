@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, type ChangeEvent } from "react";
-import { UploadCloud, Loader2, Sparkles, X, Globe, Camera, Image as ImageIcon } from "lucide-react";
+import { UploadCloud, Loader2, RotateCcw, X, Globe, Camera, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { uploadImage } from "@/lib/actions/upload";
 import { fetchWebsitePreview } from "@/lib/actions/preview";
@@ -144,7 +144,7 @@ export function ImageUploader({
         <label className="block text-xs uppercase tracking-wide text-muted">{label}</label>
         {isAutoActive && (
           <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-medium text-accent">
-            <Sparkles className="h-3 w-3" /> Auto Preview aktif
+            <Camera className="h-3 w-3" /> Auto Preview aktif
           </span>
         )}
       </div>
@@ -316,7 +316,7 @@ export function ImageUploader({
                 }}
                 className="inline-flex items-center gap-1 text-accent underline-offset-4 hover:underline"
               >
-                <Sparkles className="h-3 w-3" />
+                <RotateCcw className="h-3 w-3" />
                 Kembalikan ke Auto Preview
               </button>
             )}

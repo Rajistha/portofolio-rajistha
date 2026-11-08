@@ -116,7 +116,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   'border-bottom:1px solid rgba(255,107,74,0.35);';
 
                 var logoSvg =
-                  '<svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 18px rgba(255,107,74,0.55))">' +
+                  '<svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">' +
                     '<defs>' +
                       '<linearGradient id="r-grad-primary" x1="0%" y1="0%" x2="100%" y2="100%">' +
                         '<stop offset="0%" stop-color="#ff7b54"/>' +
@@ -127,13 +127,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                         '<stop offset="50%" stop-color="#ff8a65"/>' +
                         '<stop offset="100%" stop-color="#ff411f"/>' +
                       '</linearGradient>' +
-                      '<filter id="r-soft-glow" x="-20%" y="-20%" width="140%" height="140%">' +
-                        '<feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#ff5a3c" flood-opacity="0.45"/>' +
-                      '</filter>' +
                     '</defs>' +
                     '<rect x="5" y="5" width="90" height="90" rx="24" fill="#111113" stroke="#26262a" stroke-width="3"/>' +
                     '<rect x="10" y="10" width="80" height="80" rx="20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1.5"/>' +
-                    '<g filter="url(#r-soft-glow)">' +
+                    '<g>' +
                       '<rect x="24" y="22" width="15" height="56" rx="5" fill="url(#r-grad-primary)"/>' +
                       '<path d="M 36 22 L 56 22 C 67 22 74 28 74 38 C 74 48 67 54 56 54 L 36 54 Z" fill="url(#r-grad-primary)"/>' +
                       '<path d="M 39 33 L 53 33 C 58.5 33 62 35 62 38 C 62 41 58.5 43 53 43 L 39 43 Z" fill="#111113"/>' +
@@ -144,7 +141,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
                 el.innerHTML =
                   '<div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,107,74,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,74,.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none"></div>' +
-                  '<div style="position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,74,.14) 0%,transparent 70%);filter:blur(50px);opacity:.6;pointer-events:none"></div>' +
                   '<div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 24px;pointer-events:none">' +
                     '<div style="margin-bottom:24px">' +
                       logoSvg +

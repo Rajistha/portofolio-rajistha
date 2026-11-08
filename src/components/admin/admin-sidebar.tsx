@@ -4,14 +4,14 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutDashboard, FolderKanban, Sparkles, UserRound, LogOut, Menu, X, Link2, Briefcase, MessageSquare, BarChart3 } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Cpu, UserRound, LogOut, Menu, X, Link2, Briefcase, MessageSquare, BarChart3 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useDismissableOverlay } from "@/hooks/use-dismissable-overlay";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
-  { href: "/admin/tech-stack", label: "Tech Stack", icon: Sparkles },
+  { href: "/admin/tech-stack", label: "Tech Stack", icon: Cpu },
   { href: "/admin/experiences", label: "Rekam Jejak", icon: Briefcase },
   { href: "/admin/testimonials", label: "Testimoni", icon: MessageSquare },
   { href: "/admin/stats", label: "Statistik", icon: BarChart3 },

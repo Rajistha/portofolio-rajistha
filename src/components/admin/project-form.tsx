@@ -3,8 +3,9 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, FileText } from "lucide-react";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { TechIcon } from "@/components/ui/tech-icon";
 import type { ActionResult } from "@/lib/actions/projects";
 import type { Project, TechStack } from "@/types/database";
@@ -120,28 +121,35 @@ export function ProjectForm({
         </div>
       </div>
 
-      {/* Full description */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
-            Full description — Indonesia
-          </label>
-          <textarea
-            name="description"
-            rows={4}
-            defaultValue={project?.description}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
-          />
+      {/* Studi Kasus Proyek / Project Case Study Editor */}
+      <div className="rounded-2xl border border-border/80 bg-surface/50 p-5 sm:p-6 space-y-5">
+        <div className="border-b border-border/60 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15 text-accent">
+              <FileText className="h-4 w-4" />
+            </span>
+            <h3 className="font-semibold text-sm sm:text-base text-foreground">
+              Studi Kasus Proyek (Case Study) — Opsional
+            </h3>
+          </div>
+          <p className="mt-1 text-xs text-muted leading-relaxed">
+            Tulis pembahasan mendalam mengenai masalah, solusi teknis, dan hasil/dampak proyek ini. Konten ini akan ditampilkan saat pengunjung membuka pop-up &ldquo;Lihat Studi Kasus&rdquo; di portofolio. Jika tidak diisi, pop-up akan tetap tampil bersih dengan ringkasan dasar.
+          </p>
         </div>
-        <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted">
-            Full description — English
-          </label>
-          <textarea
+
+        <div className="space-y-6">
+          <RichTextEditor
+            name="description"
+            label="Studi Kasus Proyek (Bahasa Indonesia) — Opsional"
+            defaultValue={project?.description}
+            enableCaseStudyTemplate={true}
+          />
+          <RichTextEditor
             name="description_en"
-            rows={4}
-            defaultValue={project?.description_en ?? ""}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+            label="Project Case Study (English) — Optional"
+            defaultValue={project?.description_en}
+            enableCaseStudyTemplate={true}
+            isEnglish={true}
           />
         </div>
       </div>

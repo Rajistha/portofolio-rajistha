@@ -133,21 +133,15 @@ export function Preloader() {
           className="pointer-events-none absolute inset-0 hero-grid opacity-35"
         />
 
-        {/* Ambient Radial Accent Glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute h-80 w-80 rounded-full bg-accent/20 blur-[120px] animate-pulse"
-        />
-
         {/* Content Container (Gently floats upward and fades as curtain lifts) */}
         <div
           className={`relative z-10 flex flex-col items-center text-center px-6 pointer-events-none transition-all duration-400 ease-in ${
             closing ? "-translate-y-10 opacity-0" : "translate-y-0 opacity-100"
           }`}
         >
-          {/* Futuristic Glowing Logo R */}
+          {/* Logo R */}
           <div className="mb-7 transform transition-transform duration-300 hover:scale-105">
-            <Logo size={78} glow />
+            <Logo size={78} />
           </div>
 
           {/* Name & Accent Dot */}
