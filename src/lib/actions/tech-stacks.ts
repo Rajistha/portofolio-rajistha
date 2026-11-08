@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireUser } from "@/lib/actions/require-auth";
 import type { ActionResult } from "@/lib/actions/projects";
 
@@ -18,7 +19,8 @@ export async function createTechStack(formData: FormData): Promise<ActionResult>
 
   if (!name || !slug) return { error: "Name and slug are required." };
 
-  const { data, error } = await supabase
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from("tech_stacks")
     .insert({ name, slug, color, category, sort_order })
     .select("id")
@@ -35,7 +37,11 @@ export async function deleteTechStack(id: string): Promise<ActionResult> {
   const authError = await requireUser(supabase);
   if (authError) return { error: authError };
 
-  const { error } = await supabase.from("tech_stacks").delete().eq("id", id);
+  const admin = createAdminClient();
+  // Ensure relations are cleared
+  await admin.from("project_tech_stacks").delete().eq("tech_stack_id", id);
+
+  const { error } = await admin.from("tech_stacks").delete().eq("id", id);
   if (error) return { error: error.message };
 
   revalidatePath("/");

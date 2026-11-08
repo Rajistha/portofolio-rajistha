@@ -1,26 +1,26 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { ActionResult } from "@/lib/actions/projects";
 
 export function DeleteButton({
   action,
-  confirmMessage = "Are you sure you want to delete this?",
-  successMessage = "Deleted.",
+  confirmMessage = "Apakah Anda yakin ingin menghapus proyek ini?",
+  successMessage = "Proyek berhasil dihapus.",
 }: {
   action: () => Promise<ActionResult>;
   confirmMessage?: string;
   successMessage?: string;
 }) {
   const router = useRouter();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function handleClick() {
-    if (!confirm(confirmMessage)) return;
-
+  function handleConfirm() {
     startTransition(async () => {
       const result = await action();
       if (result?.error) {
@@ -28,19 +28,33 @@ export function DeleteButton({
         return;
       }
       toast.success(successMessage);
+      setDialogOpen(false);
       router.refresh();
     });
   }
 
   return (
-    <button
-      type="button"
-      disabled={isPending}
-      onClick={handleClick}
-      className="rounded-lg border border-border p-2 text-muted transition-colors hover:border-red-400/50 hover:text-red-400 disabled:opacity-50"
-      aria-label="Delete"
-    >
-      <Trash2 className="h-4 w-4" />
-    </button>
+    <>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => setDialogOpen(true)}
+        className="rounded-lg border border-border p-2 text-muted transition-colors hover:border-red-400/50 hover:text-red-400 disabled:opacity-50"
+        aria-label="Delete"
+        title="Hapus proyek"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+
+      <ConfirmDialog
+        isOpen={dialogOpen}
+        title="Hapus Proyek?"
+        description={confirmMessage}
+        confirmLabel="Hapus Proyek"
+        isLoading={isPending}
+        onConfirm={handleConfirm}
+        onClose={() => setDialogOpen(false)}
+      />
+    </>
   );
 }

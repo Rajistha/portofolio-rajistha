@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, Project, TechStack } from "@/types/database";
+import type { Profile, Project, TechStack, PortfolioStat, Experience, Testimonial } from "@/types/database";
 
 export async function getProfile(): Promise<Profile | null> {
   const supabase = await createClient();
@@ -52,4 +52,59 @@ export async function getProjectById(id: string): Promise<Project | null> {
   if (error) console.error("getProjectById:", error.message);
   if (!data) return null;
   return flattenProject(data as unknown as ProjectRow);
+}
+
+export async function getStats(): Promise<PortfolioStat[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("portfolio_stats")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      // Table may not exist yet or query failed
+      return [];
+    }
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getExperiences(): Promise<Experience[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("experiences")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return [];
+    }
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getTestimonials(): Promise<Testimonial[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("testimonials")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return [];
+    }
+    return data ?? [];
+  } catch {
+    return [];
+  }
 }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireUser } from "@/lib/actions/require-auth";
 import { deleteStorageFile } from "@/lib/actions/storage";
 import { findUnsafeUrl } from "@/lib/actions/validate-url";
@@ -136,16 +137,20 @@ export async function deleteProject(projectId: string): Promise<ActionResult> {
   const authError = await requireUser(supabase);
   if (authError) return { error: authError };
 
-  const { data: existing } = await supabase
+  const admin = createAdminClient();
+
+  const { data: existing } = await admin
     .from("projects")
     .select("image_url")
     .eq("id", projectId)
     .maybeSingle();
 
-  const { error } = await supabase.from("projects").delete().eq("id", projectId);
+  const { error } = await admin.from("projects").delete().eq("id", projectId);
   if (error) return { error: error.message };
 
-  await deleteStorageFile(existing?.image_url);
+  if (existing?.image_url) {
+    await deleteStorageFile(existing.image_url);
+  }
 
   revalidatePath("/");
   revalidatePath("/admin/projects");

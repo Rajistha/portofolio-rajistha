@@ -2,6 +2,7 @@ export const dictionaries = {
   id: {
     nav: {
       about: "Tentang",
+      experience: "Pengalaman",
       stack: "Skill",
       work: "Karya",
       contact: "Kontak",
@@ -59,6 +60,7 @@ export const dictionaries = {
   en: {
     nav: {
       about: "About",
+      experience: "Experience",
       stack: "Stack",
       work: "Work",
       contact: "Contact",

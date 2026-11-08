@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: defaultTitle,
-    template: "%s — Rajistha",
+    template: "%s",
   },
   description: defaultDescription,
   keywords: ["Rajistha", "Puja Rajistha", "Front-End Developer", "Web Developer", "Portfolio"],
@@ -96,6 +96,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   sessionStorage.setItem(SEEN_KEY, 'true');
                 } catch(e) { /* private/strict mode: show once, then skip */ }
 
+                // Flag that preloader is currently running
+                window.__preloader_active = true;
+
                 // Inject keyframe animation (progress fill only, no pulsing)
                 var style = document.createElement('style');
                 style.textContent =
@@ -149,7 +152,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                     '<h2 style="font-family:system-ui,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;margin:0 0 24px;color:#ededec">Puja Rajistha<span style="color:#ff6b4a">.</span></h2>' +
                     '<div style="width:280px;max-width:90vw">' +
                       '<div style="height:6px;width:100%;border-radius:9999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);padding:1px;margin-bottom:10px;overflow:hidden">' +
-                        '<div id="__pl_bar" style="height:100%;border-radius:9999px;background:linear-gradient(90deg,#ff6b4a,#ff9e7d);box-shadow:0 0 10px rgba(255,107,74,.5);animation:_pl_fill 3s cubic-bezier(0.2,0.8,0.2,1) forwards"></div>' +
+                        '<div id="__pl_bar" style="height:100%;border-radius:9999px;background:linear-gradient(90deg,#ff6b4a,#ff9e7d);box-shadow:0 0 10px rgba(255,107,74,.5);animation:_pl_fill 1.2s cubic-bezier(0.2,0.8,0.2,1) forwards"></div>' +
                       '</div>' +
                       '<div style="display:flex;justify-content:space-between;font-size:11px;font-family:ui-monospace,monospace;color:rgba(237,237,236,.45)">' +
                         '<span id="__pl_status">&gt; Initializing...</span>' +
@@ -173,7 +176,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 var pctEl = document.getElementById('__pl_pct');
                 var stEl  = document.getElementById('__pl_status');
                 var t0 = Date.now();
-                var DUR = 3000;
+                var DUR = 1200;
                 var progressDone = false;
                 var appReady = window.__portfolio_ready === true;
                 var dismissed = false;
@@ -206,7 +209,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   } else {
                     progressDone = true;
                     if (appReady) {
-                      setTimeout(dismiss, 120);
+                      setTimeout(dismiss, 80);
                     } else {
                       if (stEl) stEl.textContent = '> System ready // Welcome!';
                     }
@@ -218,15 +221,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 function dismiss() {
                   if (dismissed) return;
                   dismissed = true;
+                  window.__preloader_active = false;
+                  window.dispatchEvent(new Event('preloader:swipe'));
                   el.style.pointerEvents = 'none';
                   var s = document.getElementById('__pl_skip');
                   if (s) s.style.opacity = '0';
                   el.style.transform = 'translateY(-100%)';
-                  setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 900);
+                  setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 750);
                 }
 
-                // Hard fallback: dismiss after 4500ms max
-                setTimeout(dismiss, 4500);
+                // Hard fallback: dismiss after 2200ms max
+                setTimeout(dismiss, 2200);
 
                 el.addEventListener('click', dismiss);
                 document.addEventListener('keydown', function(e) {

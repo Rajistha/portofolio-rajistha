@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Download } from "lucide-react";
@@ -19,6 +20,15 @@ const Lanyard = dynamic(() => import("@/components/site/lanyard").then((mod) => 
 
 export function Hero({ profile }: { profile: Profile | null }) {
   const { t } = useLanguage();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener("resize", check, { passive: true });
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const name = profile?.name ?? "Your Name";
   const role = profile?.role ?? "Front-End Developer";
   const tagline = profile?.tagline ?? "I build fast, accessible, beautiful interfaces.";
@@ -86,15 +96,17 @@ export function Hero({ profile }: { profile: Profile | null }) {
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-        className="absolute inset-x-0 top-0 hidden h-[160vh] touch-none select-none lg:block"
-        aria-hidden
-      >
-        <Lanyard photoUrl={profile?.avatar_url} />
-      </motion.div>
+      {isDesktop && (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="absolute inset-x-0 top-0 hidden h-[160vh] touch-none select-none lg:block"
+          aria-hidden
+        >
+          <Lanyard photoUrl={profile?.avatar_url} />
+        </motion.div>
+      )}
     </section>
   );
 }

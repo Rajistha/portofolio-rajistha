@@ -14,9 +14,26 @@ export async function deleteStorageFile(url: string | null | undefined) {
   if (idx === -1) return;
 
   const [bucket, ...pathParts] = url.slice(idx + PUBLIC_PREFIX.length).split("/");
-  const path = pathParts.join("/");
-  if (!bucket || !path) return;
+  const rawPath = pathParts.join("/");
+  if (!bucket || !rawPath) return;
 
-  const admin = createAdminClient();
-  await admin.storage.from(bucket).remove([path]);
+  const cleanPath = rawPath.split("?")[0];
+  let decodedPath = cleanPath;
+  try {
+    decodedPath = decodeURIComponent(cleanPath);
+  } catch {
+    // ignore decode error
+  }
+
+  const pathsToRemove = Array.from(new Set([cleanPath, decodedPath])).filter(Boolean);
+
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.storage.from(bucket).remove(pathsToRemove);
+    if (error) {
+      console.error(`Failed to delete storage file from bucket [${bucket}]:`, error.message);
+    }
+  } catch (err) {
+    console.error(`Exception deleting storage file:`, err);
+  }
 }

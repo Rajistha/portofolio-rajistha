@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminSidebar userEmail={user?.email} signOut={signOut} />
 
       <main className="flex-1 p-4 sm:p-10">
-        <div className="mx-auto max-w-4xl">{children}</div>
+        <div className="mx-auto max-w-5xl">{children}</div>
       </main>
     </div>
   );

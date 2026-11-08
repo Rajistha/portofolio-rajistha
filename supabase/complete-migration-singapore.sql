@@ -1,0 +1,401 @@
+-- =============================================================================
+-- ALL-IN-ONE SUPABASE MIGRATION SCRIPT FOR SINGAPORE (ap-southeast-1)
+-- =============================================================================
+-- PANDUAN PENGGUNAAN:
+-- 1. Buat proyek baru di dashboard Supabase dengan Region: Singapore (ap-southeast-1).
+-- 2. Buka Supabase Dashboard > SQL Editor > New query.
+-- 3. Salin dan tempel SELURUH isi script ini ke editor, lalu klik "Run" (atau Ctrl+Enter).
+-- 4. Semua tabel, relasi, storage bucket, RLS policies, dan data Anda akan langsung terpasang.
+-- =============================================================================
+
+-- =============================================================================
+-- MASTER SCHEMA MIGRATION SCRIPT (SINGAPORE REGION - ap-southeast-1)
+-- =============================================================================
+-- Database schema for Puja Rajistha Portfolio & Link Shortener Ecosystem
+-- Includes:
+--   1. Extensions (pgcrypto)
+--   2. Tables: profile, tech_stacks, projects, project_tech_stacks,
+--              portfolio_stats, experiences, testimonials, short_links
+--   3. Indexes for maximum query performance
+--   4. Row Level Security (RLS) policies for tables
+--   5. Storage buckets setup (project-images, avatars) & Storage RLS policies
+-- =============================================================================
+
+-- Enable pgcrypto for gen_random_uuid()
+create extension if not exists "pgcrypto";
+
+-- =============================================================================
+-- 1. TABLES DEFINITIONS
+-- =============================================================================
+
+-- 1.1 Profile (Hero & About section)
+create table if not exists profile (
+  id uuid primary key default gen_random_uuid(),
+  name text not null default 'Puja Rajistha',
+  role text not null default 'Web Developer',
+  tagline text not null default 'I build fast, accessible, beautiful interfaces.',
+  bio text not null default '',
+  bio_en text,
+  avatar_url text,
+  email text,
+  github_url text,
+  linkedin_url text,
+  instagram_url text,
+  cv_url text,
+  updated_at timestamptz not null default now()
+);
+
+-- 1.2 Tech Stacks
+create table if not exists tech_stacks (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text not null unique,        -- simple-icons slug (e.g. "react", "nextdotjs")
+  color text,                       -- hex color override (e.g. "61DAFB")
+  category text not null default 'Frontend', -- Frontend / Backend / Tools / Design
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- 1.3 Projects
+create table if not exists projects (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  summary text not null default '',
+  summary_en text,
+  description text not null default '',
+  description_en text,
+  image_url text,
+  live_url text,
+  repo_url text,
+  featured boolean not null default false,
+  sort_order int not null default 0,
+  status text not null default 'completed', -- completed / in_progress / archived
+  created_at timestamptz not null default now()
+);
+
+-- 1.4 Project Tech Stacks (Many-to-Many Join Table)
+create table if not exists project_tech_stacks (
+  project_id uuid not null references projects(id) on delete cascade,
+  tech_stack_id uuid not null references tech_stacks(id) on delete cascade,
+  primary key (project_id, tech_stack_id)
+);
+
+-- 1.5 Portfolio Stats (Key Metrics on Landing Page)
+create table if not exists portfolio_stats (
+  id uuid primary key default gen_random_uuid(),
+  value numeric not null default 0,
+  suffix text not null default '',
+  label text not null,
+  label_en text,
+  description text not null default '',
+  description_en text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- 1.6 Experiences / Rekam Jejak (Education, Work, Organization, Projects)
+create table if not exists experiences (
+  id uuid primary key default gen_random_uuid(),
+  category text not null default 'work', -- 'education', 'work', 'organization', 'project'
+  period text not null,
+  role text not null,
+  role_en text,
+  company text not null,
+  location text not null default '',
+  description text not null default '',
+  description_en text,
+  achievements text not null default '',
+  achievements_en text,
+  skills text not null default '',
+  is_current boolean not null default false,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- 1.7 Testimonials / Ulasan Klien
+create table if not exists testimonials (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  role text not null,
+  role_en text,
+  company text not null,
+  avatar_url text,
+  rating int not null default 5,
+  content text not null,
+  content_en text,
+  project_ref text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- 1.8 Branded Short Links (s.rajistha.my.id & rajistha.my.id)
+create table if not exists short_links (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  destination_url text not null,
+  title text not null default '',
+  description text default '',
+  clicks int not null default 0,
+  is_pinned boolean not null default false,
+  is_public boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- =============================================================================
+-- 2. PERFORMANCE INDEXES
+-- =============================================================================
+create index if not exists idx_short_links_slug on short_links (slug);
+create index if not exists idx_short_links_pinned on short_links (is_pinned desc, created_at desc);
+create index if not exists idx_projects_slug on projects (slug);
+create index if not exists idx_projects_featured on projects (featured desc, sort_order asc);
+create index if not exists idx_tech_stacks_sort on tech_stacks (sort_order asc);
+create index if not exists idx_portfolio_stats_sort on portfolio_stats (sort_order asc);
+create index if not exists idx_experiences_category_sort on experiences (category, sort_order asc);
+create index if not exists idx_testimonials_sort on testimonials (sort_order asc);
+
+-- =============================================================================
+-- 3. ROW LEVEL SECURITY (RLS) POLICIES
+-- =============================================================================
+
+alter table profile enable row level security;
+alter table tech_stacks enable row level security;
+alter table projects enable row level security;
+alter table project_tech_stacks enable row level security;
+alter table portfolio_stats enable row level security;
+alter table experiences enable row level security;
+alter table testimonials enable row level security;
+alter table short_links enable row level security;
+
+-- Drop existing policies if re-running
+drop policy if exists "public read profile" on profile;
+drop policy if exists "auth write profile" on profile;
+drop policy if exists "public read tech_stacks" on tech_stacks;
+drop policy if exists "auth write tech_stacks" on tech_stacks;
+drop policy if exists "public read projects" on projects;
+drop policy if exists "auth write projects" on projects;
+drop policy if exists "public read project_tech_stacks" on project_tech_stacks;
+drop policy if exists "auth write project_tech_stacks" on project_tech_stacks;
+drop policy if exists "public read portfolio_stats" on portfolio_stats;
+drop policy if exists "auth write portfolio_stats" on portfolio_stats;
+drop policy if exists "public read experiences" on experiences;
+drop policy if exists "auth write experiences" on experiences;
+drop policy if exists "public read testimonials" on testimonials;
+drop policy if exists "auth write testimonials" on testimonials;
+drop policy if exists "public read short_links" on short_links;
+drop policy if exists "public insert short_links" on short_links;
+drop policy if exists "public update click count" on short_links;
+drop policy if exists "admin all short_links" on short_links;
+
+-- Public read policies (visitor access)
+create policy "public read profile" on profile for select using (true);
+create policy "public read tech_stacks" on tech_stacks for select using (true);
+create policy "public read projects" on projects for select using (true);
+create policy "public read project_tech_stacks" on project_tech_stacks for select using (true);
+create policy "public read portfolio_stats" on portfolio_stats for select using (true);
+create policy "public read experiences" on experiences for select using (true);
+create policy "public read testimonials" on testimonials for select using (true);
+create policy "public read short_links" on short_links for select using (true);
+
+-- Authenticated write policies (admin dashboard)
+create policy "auth write profile" on profile for all to authenticated using (true) with check (true);
+create policy "auth write tech_stacks" on tech_stacks for all to authenticated using (true) with check (true);
+create policy "auth write projects" on projects for all to authenticated using (true) with check (true);
+create policy "auth write project_tech_stacks" on project_tech_stacks for all to authenticated using (true) with check (true);
+create policy "auth write portfolio_stats" on portfolio_stats for all to authenticated using (true) with check (true);
+create policy "auth write experiences" on experiences for all to authenticated using (true) with check (true);
+create policy "auth write testimonials" on testimonials for all to authenticated using (true) with check (true);
+create policy "admin all short_links" on short_links for all to authenticated using (true) with check (true);
+
+-- Special public permissions for short links (public creation & click incrementing)
+create policy "public insert short_links" on short_links for insert with check (is_pinned = false);
+create policy "public update click count" on short_links for update using (true) with check (true);
+
+-- =============================================================================
+-- 4. STORAGE BUCKETS & STORAGE RLS POLICIES
+-- =============================================================================
+
+-- Ensure buckets exist and are public
+insert into storage.buckets (id, name, public)
+values ('project-images', 'project-images', true)
+on conflict (id) do update set public = true;
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do update set public = true;
+
+insert into storage.buckets (id, name, public)
+values ('documents', 'documents', true)
+on conflict (id) do update set public = true;
+
+-- Drop existing storage policies if re-running
+drop policy if exists "public read project-images" on storage.objects;
+drop policy if exists "auth upload project-images" on storage.objects;
+drop policy if exists "auth update project-images" on storage.objects;
+drop policy if exists "auth delete project-images" on storage.objects;
+drop policy if exists "public read avatars" on storage.objects;
+drop policy if exists "auth upload avatars" on storage.objects;
+drop policy if exists "auth update avatars" on storage.objects;
+drop policy if exists "auth delete avatars" on storage.objects;
+drop policy if exists "public read documents" on storage.objects;
+drop policy if exists "auth upload documents" on storage.objects;
+drop policy if exists "auth update documents" on storage.objects;
+drop policy if exists "auth delete documents" on storage.objects;
+
+-- Storage policies for project-images
+create policy "public read project-images" on storage.objects
+  for select using (bucket_id = 'project-images');
+create policy "auth upload project-images" on storage.objects
+  for insert to authenticated with check (bucket_id = 'project-images');
+create policy "auth update project-images" on storage.objects
+  for update to authenticated using (bucket_id = 'project-images');
+create policy "auth delete project-images" on storage.objects
+  for delete to authenticated using (bucket_id = 'project-images');
+
+-- Storage policies for avatars
+create policy "public read avatars" on storage.objects
+  for select using (bucket_id = 'avatars');
+create policy "auth upload avatars" on storage.objects
+  for insert to authenticated with check (bucket_id = 'avatars');
+create policy "auth update avatars" on storage.objects
+  for update to authenticated using (bucket_id = 'avatars');
+create policy "auth delete avatars" on storage.objects
+  for delete to authenticated using (bucket_id = 'avatars');
+
+-- Storage policies for documents (CV, etc.)
+create policy "public read documents" on storage.objects
+  for select using (bucket_id = 'documents');
+create policy "auth upload documents" on storage.objects
+  for insert to authenticated with check (bucket_id = 'documents');
+create policy "auth update documents" on storage.objects
+  for update to authenticated using (bucket_id = 'documents');
+create policy "auth delete documents" on storage.objects
+  for delete to authenticated using (bucket_id = 'documents');
+
+
+-- =============================================================================
+-- 5. INITIAL DATA RESTORATION (PROFILE, TECH STACKS, PROJECTS, SHORT LINKS)
+-- =============================================================================
+
+-- =========================================================================
+-- DATA RESTORATION SCRIPT FOR SINGAPORE SUPABASE INSTANCE
+-- Generated automatically from current project: https://guxvqtqujtsrxaokwtir.supabase.co
+-- =========================================================================
+
+-- -------------------------------------------------------------------------
+-- Table: profile (1 rows)
+-- -------------------------------------------------------------------------
+insert into "profile" ("id", "name", "role", "tagline", "bio", "avatar_url", "email", "github_url", "linkedin_url", "cv_url", "updated_at", "instagram_url", "bio_en") values ('4126aacf-dd27-490a-9d57-f50d128c879f', 'Puja Rajistha', 'Web Developer', 'I build fast, accessible, beautiful interfaces.', '<p style="text-align: left;">Made Puja Rajistha AW, akrab disapa Rajistha, seorang Front-End Web Developer berusia 20 tahun dan mahasiswa Teknologi Informasi di Universitas Brawijaya dengan pengalaman sekitar 1 tahun. Fokus saya adalah membangun antarmuka web yang cepat, rapi, dan enak digunakan, dengan stack utama React, Next.js, TypeScript, JavaScript, dan Tailwind CSS, didukung Vite dan Git untuk proses development, serta Vercel untuk deployment.</p><p style="text-align: left;">Latar belakang saya di Visual Effects, Video Editing, Sinematografi, dan Desain Grafis menjadi nilai tambah yang membuat saya lebih peka terhadap detail visual dan pengalaman pengguna saat menerjemahkan desain dari Figma menjadi kode. Saya juga terbiasa memanfaatkan Framer untuk eksplorasi interaksi dan Supabase serta Node.js untuk kebutuhan backend sederhana. Saya senang bekerja dalam tim yang kolaboratif dan terus belajar untuk memperdalam kualitas kode maupun kepekaan visual di setiap proyek.</p>', 'https://guxvqtqujtsrxaokwtir.supabase.co/storage/v1/object/public/avatars/1794154488043-WhatsApp-Image-2026-11-08-at-23.11.22.jpeg', 'rajistha.id@gmail.com', 'https://github.com/rajistha', 'https://www.linkedin.com/in/pujarajisthaa', NULL, '2026-11-08T16:14:51.263+00:00', 'https://www.instagram.com/pujarajisthaa_aw', '<p style="text-align: left;">I''am Made Puja Rajistha AW, commonly known as <strong>Rajistha</strong>, is a Front-End Web Developer and Information Technology student at Brawijaya University. My focus is building web interfaces that are <strong>fast, clean, and easy to use</strong>, working with a core stack of React, Next.js, TypeScript, JavaScript, and Tailwind CSS, supported by Vite and Git for development, and Vercel for deployment.</p><p style="text-align: left;">My background in Visual Effects, Video Editing, Cinematography, and Graphic Design is an added strength, giving me a sharper eye for visual detail and user experience when translating designs from Figma into code. I also use Framer for interaction exploration, along with Supabase and Node.js for simple backend needs. I enjoy working in collaborative teams and continuously learning to deepen both my code quality and visual sensibility on every project.</p>') on conflict (id) do update set "name" = excluded."name", "role" = excluded."role", "tagline" = excluded."tagline", "bio" = excluded."bio", "avatar_url" = excluded."avatar_url", "email" = excluded."email", "github_url" = excluded."github_url", "linkedin_url" = excluded."linkedin_url", "cv_url" = excluded."cv_url", "updated_at" = excluded."updated_at", "instagram_url" = excluded."instagram_url", "bio_en" = excluded."bio_en";
+
+-- -------------------------------------------------------------------------
+-- Table: tech_stacks (13 rows)
+-- -------------------------------------------------------------------------
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('2528784c-bf1a-44da-a017-69ca7a03f50e', 'React', 'react', '61DAFB', 'Frontend', 1, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('bb6341a2-a38d-4c85-9001-d104ccc6802c', 'TypeScript', 'typescript', '3178C6', 'Frontend', 3, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('99bb30d8-47da-47ad-b5a5-b062e064a9ec', 'Tailwind CSS', 'tailwindcss', '06B6D4', 'Frontend', 4, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('62e4c724-c448-4d71-bdff-d16f0a097d8c', 'JavaScript', 'javascript', 'F7DF1E', 'Frontend', 5, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('602b7a88-ae80-4e71-b3fa-71ee31f2e7f7', 'Framer', 'framer', '0055FF', 'Tools', 6, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('5100c57d-5544-4bf6-9872-25f1ed1dab97', 'Vite', 'vite', '646CFF', 'Tools', 7, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('f2f9dcca-7221-4914-9ca6-b1257ebc6a3e', 'Figma', 'figma', 'F24E1E', 'Design', 8, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('6bea3870-c29c-449b-bf5c-ea8885ecbcf6', 'Supabase', 'supabase', '3FCF8E', 'Backend', 9, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('76db4a33-2e43-4ab0-b6f2-a40586f44263', 'Node.js', 'nodedotjs', '339933', 'Backend', 10, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('5ccca9e8-dce6-4166-83d3-d748a86a3dad', 'Git', 'git', 'F05032', 'Tools', 11, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('0464a226-f6eb-4d52-991a-e82f42ec4f10', 'Next.js', 'nextdotjs', '000000', 'Frontend', 2, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('86205131-89e5-4b30-a9ff-c38df3c6837f', 'Vercel', 'vercel', '000000', 'Tools', 12, '2026-09-09T12:28:09.502327+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+insert into "tech_stacks" ("id", "name", "slug", "color", "category", "sort_order", "created_at") values ('8791bcab-a31b-461d-9866-c1b25642b075', 'Go', 'go', NULL, 'Backend', 0, '2026-11-08T16:01:11.709325+00:00') on conflict (slug) do update set "name" = excluded."name", "color" = excluded."color", "category" = excluded."category", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at";
+
+-- -------------------------------------------------------------------------
+-- Table: projects (7 rows)
+-- -------------------------------------------------------------------------
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('fdcb6eec-957d-4fc5-978e-181507297223', 'PC KMHDI Malang', 'pc-kmhdi-malang', 'Website PC KMHDI Malang (kmhdimalang.org) adalah web apps resmi berbasis Next.js yang jadi pusat informasi dan publikasi bagi mahasiswa Hindu se-Malang Raya, mencakup profil organisasi, berita, koleksi e-Book berbasis login kader, galeri kegiatan, dan data yang dikelola secara dinamis lewat database.', 'Website PC KMHDI Malang (kmhdimalang.org) adalah web apps resmi Pengurus Cabang Kesatuan Mahasiswa Hindu Dharma Indonesia Malang, dibangun dengan Next.js dan berfungsi sebagai pusat informasi, publikasi, dan pelayanan organisasi bagi mahasiswa Hindu se-Malang Raya. Di dalamnya tersedia profil organisasi (sejarah, visi misi, struktur, dan program kerja), berita dan artikel seputar kegiatan kaderisasi serta kolaborasi dengan pemerintah dan mitra, koleksi e-Book yang bisa diakses lewat sistem login kader, galeri dokumentasi kegiatan, serta data mitra dan konten yang dikelola secara dinamis melalui database (Supabase), hingga informasi kontak dan media sosial resmi mereka.', 'https://guxvqtqujtsrxaokwtir.supabase.co/storage/v1/object/public/project-images/1788957920850-Screenshot-2026-09-09-193331.png', 'https://www.kmhdimalang.org/', 'https://github.com/PC-KMHDI-Malang/PC-KMHDI-Malang-Web.git', TRUE, 1, '2026-09-09T12:46:28.317227+00:00', 'The PC KMHDI Malang website (kmhdimalang.org) is an official Next.js-based web application serving as an information and publication hub for Hindu university students across the Greater Malang area; it features organizational profiles, news, a member-exclusive e-book collection, an activity gallery, and data dynamically managed via a database.', 'The PC KMHDI Malang website (kmhdimalang.org) is the official web application for the Malang Branch of the Indonesian Hindu Student Association (KMHDI). Built using Next.js, it serves as a hub for information, publications, and organizational services for Hindu students across the Greater Malang area. The site features organizational profiles (history, vision and mission, structure, and work programs); news and articles covering member development activities and collaborations with government bodies and partners; an e-book collection accessible via a member login system; an event photo gallery; partner data and content dynamically managed through a database (Supabase); and official contact details and social media links.', 'completed') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', 'Tabungan Kita—made for mona <3', 'tabungan-kita-made-for-mona-3', 'Proyek ini dipersembahkan untuk Wina Sadiva, alasan di balik setiap baris kode yang ditulis dengan penuh cinta. Tabungan Kita adalah aplikasi web untuk membantu pasangan menabung menuju target finansial bersama, seperti dana pernikahan, rumah pertama, atau liburan impian. Selama target masih aktif, sistem akan mengunci fitur penarikan agar komitmen menabung tetap terjaga. Dibangun dengan React, Vite, Tailwind CSS v4, Recharts, dan Supabase, UI/UX menggunakan sistem Glassmorphism kustom bertema Rose Gold dan Honey Yellow yang dibangun dari nol tanpa library komponen instan, lengkap dengan dashboard analitik real-time, mode gelap/terang, modal berbasis React Portal, dan manajemen data aman lewat soft-delete.', 'Proyek ini dipersembahkan untuk Wina Sadiva, alasan di balik setiap baris kode yang ditulis dengan penuh cinta. Tabungan Kita adalah aplikasi web yang membantu pasangan menabung menuju target finansial bersama, seperti dana pernikahan, rumah pertama, atau liburan impian, dengan sistem yang mengunci fitur penarikan selama target masih aktif agar komitmen menabung tidak mudah goyah. Dashboard analitik real-time menampilkan grafik donut interaktif dan progress bar kustom yang memvisualisasikan perjalanan menuju target, sementara modal dan tooltip dibangun menggunakan React Portal untuk menggantikan alert bawaan browser demi pengalaman yang lebih mulus. Dibangun dari nol menggunakan React, Vite, Tailwind CSS v4, Recharts, dan Supabase, aplikasi ini menghadirkan desain Glassmorphism kustom bertema Rose Gold dan Honey Yellow, lengkap dengan dukungan mode gelap/terang serta manajemen data aman lewat logika soft-delete yang menjaga riwayat transaksi tetap utuh.', 'https://guxvqtqujtsrxaokwtir.supabase.co/storage/v1/object/public/project-images/1789239922362-Screenshot-2026-09-13-020456.png', 'https://www.mona-rajistha.my.id/', NULL, TRUE, 1, '2026-09-12T19:08:58.752728+00:00', 'This project is dedicated to Wina Sadiva, the reason behind every line of code written with love. Tabungan Kita is a web application that helps couples save toward shared financial goals, such as a wedding fund, a first home, or a long-awaited vacation. As long as a goal is still active, the system will lock the withdrawal feature to keep the savings commitment intact. Built with React, Vite, Tailwind CSS v4, Recharts, and Supabase, its UI/UX uses a custom Glassmorphism design system in a Rose Gold and Honey Yellow theme, built from scratch without any pre-made component libraries, complete with real-time analytics dashboards, dark/light mode, portal-based modals, and secure data management through soft-delete.', 'This project is dedicated to Wina Sadiva, the reason behind every line of code written with love. Tabungan Kita is a web application that helps couples save toward shared financial goals, such as a wedding fund, a first home, or a long-awaited vacation, with a system that locks the withdrawal feature while a goal remains active so the savings commitment doesn''t waver. A real-time analytics dashboard shows an interactive donut chart and a custom progress bar visualizing the journey toward each goal, while modals and tooltips are built using React Portals to replace the browser''s default alerts for a smoother experience. Built from scratch with React, Vite, Tailwind CSS v4, Recharts, and Supabase, the app features a custom Glassmorphism design in a Rose Gold and Honey Yellow theme, complete with dark/light mode support and secure data management through soft-delete logic that keeps transaction history intact.', 'completed') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', 'SnapHub Photobooth', 'snaphub-photobooth', 'SnapHub adalah web apps modern untuk layanan sewa photobooth premium di Malang, dibangun dengan React 19, Vite, dan Tailwind CSS 4 dengan tampilan dark glassmorphism serta micro-animation dari Framer Motion. Aplikasinya terhubung ke Supabase untuk backend, database, dan autentikasi, mendukung fitur kalender ketersediaan real-time, dashboard admin, kalkulator profit sharing interaktif dengan Recharts, serta integrasi pricelist PDF dan tombol WhatsApp untuk booking langsung.', 'SnapHub  adalah web apps modern, cepat, dan responsif yang dirancang khusus untuk layanan sewa photobooth premium berbasis di Malang, dibangun dengan stack utama React 19, Vite, dan Tailwind CSS 4. Tampilannya mengusung estetika dark glassmorphism dengan aksen merah dan micro-animation dari Framer Motion, termasuk efek mouse-glow yang dioptimalkan untuk berjalan mulus di 60FPS.
+
+Dari sisi fungsi, SnapHub terhubung ke Supabase sebagai backend untuk database dan autentikasi, memungkinkan pengguna melihat kalender ketersediaan booking secara real-time, sementara admin punya dashboard tersendiri untuk mengelola jadwal dan memantau data keuangan. Situs ini juga dilengkapi kalkulator profit sharing untuk mitra "Event Fun Snap" yang divisualisasikan lewat grafik interaktif dari Recharts, pricelist lengkap dengan akses unduh PDF, gambar yang dioptimalkan dalam format `.webp` untuk kecepatan loading, serta tombol WhatsApp yang selalu muncul untuk mempermudah komunikasi dengan calon pelanggan.', 'https://guxvqtqujtsrxaokwtir.supabase.co/storage/v1/object/public/project-images/1794142280837-Screenshot-2026-11-08-192145.png', 'https://snaphub.my.id/', 'https://github.com/Rajistha/SnapHub.id.git', TRUE, 2, '2026-09-10T03:47:44.507253+00:00', 'SnapHub is a modern web application for a premium photo booth rental service in Malang. Built using React 19, Vite, and Tailwind CSS 4, it features a dark glassmorphism aesthetic and micro-animations powered by Framer Motion. The application integrates with Supabase for backend, database, and authentication services, supporting features such as a real-time availability calendar, an admin dashboard, an interactive profit-sharing calculator using Recharts, as well as PDF price list integration and a WhatsApp button for direct booking.', 'SnapHub is a modern, fast, and responsive web application designed specifically for a premium photobooth rental service based in Malang, built using a core stack of React 19, Vite, and Tailwind CSS 4. Its design features a dark glassmorphism aesthetic with red accents and micro-animations powered by Framer Motion—including a mouse-glow effect optimized for smooth 60FPS performance.
+
+Functionally, SnapHub integrates with Supabase as its backend for database management and authentication, allowing users to view real-time booking availability while providing administrators with a dedicated dashboard to manage schedules and monitor financial data. The site also includes a profit-sharing calculator for "Event Fun Snap" partners—visualized via interactive Recharts graphs—a comprehensive price list with PDF download capabilities, images optimized in `.webp` format for fast loading, and a persistent WhatsApp button to facilitate easy communication with potential customers.', 'completed') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', 'MemoriBox.id', 'memoribox-id', 'MemoriBox.id merupakan platform web dan operasional terpadu untuk bisnis photobooth & photobox yang menggabungkan situs landing page publik, sistem smart queue antrean digital dengan tampilan TV panggung, live sesi foto tamu, serta dashboard admin komprehensif untuk pengelolaan jadwal, invoice cetak A4, kas keuangan, dan pembagian hasil acara dalam satu kesatuan sistem multi-domain.', 'MemoriBox.id adalah platform all-in-one modern untuk penyedia jasa photobooth dan photobox di wilayah Jabodetabek dan Bali, yang mengintegrasikan pengalaman situs publik interaktif dengan ekosistem operasional acara secara real-time. Dibangun menggunakan Next.js 16 dan Supabase dengan arsitektur multi-domain, platform ini tidak hanya menyajikan katalog paket, galeri, kalender cek jadwal, dan bio-link untuk calon klien, tetapi juga memfasilitasi operasional lapangan melalui sistem antrean digital berbasis QR dan layar TV (smart queue), album sesi foto langsung, hingga manajemen back-office lengkap yang mencakup pencatatan kas acara, perhitungan bagi hasil otomatis, serta penerbitan invoice & quotation resmi standar cetak A4.', NULL, 'https://memoribox.vercel.app/', NULL, TRUE, 0, '2026-11-08T12:18:37.02799+00:00', 'MemoriBox.id is an integrated web and operational platform for photobooth and photobox businesses. It combines a public-facing landing page, a smart digital queue system (with a display for event-site TV screens), live guest photo session management, and a comprehensive admin dashboard—all within a unified, multi-domain system that handles scheduling, A4-printable invoicing, financial tracking, and the distribution of event earnings.', 'MemoriBox.id is a modern, all-in-one platform for photobooth and photobox service providers in the Greater Jakarta (Jabodetabek) area and Bali. It integrates an interactive public-facing website with a real-time event operational ecosystem. Built using Next.js 16 and Supabase with a multi-domain architecture, the platform offers more than just a package catalog, photo gallery, availability calendar, and bio-links for prospective clients; it also streamlines field operations through a QR-based digital queuing system (smart queue) displayed on TV screens, live photo session albums, and a comprehensive back-office management suite. This suite includes event cash recording, automated revenue-sharing calculations, and the generation of professional invoices and quotations formatted for A4 printing.', 'in_progress') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', 'Wenten BBM', 'wenten-bbm', 'Wenten (ada) BBM adalah proyek warga untuk membantu sesama menemukan SPBU yang masih punya stok selama gangguan pasokan BBM di Bali. Status dihitung dari laporan warga yang sedang berada di SPBU, bukan dari data resmi.', '', 'https://guxvqtqujtsrxaokwtir.supabase.co/storage/v1/object/public/project-images/1794140390193-Screenshot-2026-10-16-173952.png', 'https://wentenbbm.site/', NULL, TRUE, 1, '2026-10-16T10:42:33.176412+00:00', '"Wenten BBM" (meaning "Fuel Available") is a community-driven project designed to help people locate gas stations that still have fuel in stock during the ongoing fuel supply disruption in Bali. The status updates are based on reports from individuals currently at the gas stations, rather than from official data.', NULL, 'completed') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('621a0681-805a-4262-af6f-5f7a527eedee', 'Skrippy', 'skrippy', 'Skrippy adalah platform web yang membantu mahasiswa memastikan naskah skripsinya sesuai pedoman penulisan kampus sebelum diserahkan kepada pembimbing dan penguji. Pengguna mengunggah dokumen berformat .docx, dan sistem melakukan pemeriksaan otomatis atas format halaman, struktur dan kelengkapan bagian, ejaan, serta konsistensi sitasi dengan daftar pustaka berdasarkan pedoman yang dapat dikonfigurasi per institusi.', 'Skrippy adalah platform web yang membantu mahasiswa memastikan naskah skripsinya sesuai pedoman penulisan kampus sebelum diserahkan kepada pembimbing dan penguji. Pengguna mengunggah dokumen berformat .docx, dan sistem melakukan pemeriksaan otomatis atas format halaman, struktur dan kelengkapan bagian, ejaan, serta konsistensi sitasi dengan daftar pustaka berdasarkan pedoman yang dapat dikonfigurasi per institusi. Setiap temuan disajikan dalam laporan berskor yang mencantumkan lokasi, nilai aktual dibandingkan nilai yang seharusnya, serta panduan perbaikan langkah demi langkah di Microsoft Word. Platform ini juga menyediakan perbandingan antarversi revisi, naskah bersorot dalam format PDF dan Word, serta tautan berbagi baca-saja untuk keperluan konsultasi dengan dosen pembimbing. Analisis berbasis AI tersedia secara opsional dan hanya dijalankan atas persetujuan pengguna. Seluruh naskah diperlakukan secara privat dan dihapus otomatis setelah 30 hari tanpa aktivitas.', 'https://guxvqtqujtsrxaokwtir.supabase.co/storage/v1/object/public/project-images/1792585115588-Screenshot-2026-10-21-191748.png', 'https://skrippy.vercel.app/', NULL, TRUE, 0, '2026-10-21T12:19:46.932203+00:00', 'Skrippy is a web-based platform that helps university students ensure their thesis manuscripts comply with their institution’s writing guidelines before submission to supervisors and examiners. Users upload documents in .docx format, and the system automatically checks page formatting, the structure and completeness of sections, spelling, and the consistency of citations against the bibliography—all based on guidelines that can be configured for each individual institution.', 'Skrippy is a web-based platform that helps university students ensure their thesis manuscripts comply with their institution’s writing guidelines before submission to supervisors and examiners. Users upload .docx files, and the system automatically checks page formatting, the structure and completeness of sections, spelling, and the consistency of citations against the bibliography—all based on guidelines that can be configured for each specific institution. Each finding is presented in a scored report that identifies the location of the issue, compares the actual value against the required standard, and provides step-by-step instructions for making corrections in Microsoft Word. The platform also offers version comparison, highlighted manuscripts in PDF and Word formats, and read-only sharing links to facilitate consultations with academic supervisors. AI-powered analysis is available as an optional feature and is only performed with the user’s consent. All manuscripts are treated as private and are automatically deleted after 30 days of inactivity.', 'in_progress') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+insert into "projects" ("id", "title", "slug", "summary", "description", "image_url", "live_url", "repo_url", "featured", "sort_order", "created_at", "summary_en", "description_en", "status") values ('008c0126-7566-4832-a7e5-9189ede2894f', 'Monaplan', 'monaplan', 'Monaplan adalah aplikasi web all-in-one digital wedding planner yang membantu calon pengantin mengelola persiapan pernikahan dalam satu workspace terpusat dan kolaboratif. Fiturnya mencakup manajemen budget dan cicilan vendor, checklist berbasis adat (Jawa, Sunda, Minang, Bali, Batak, hingga Umum), target tabungan, undangan digital dengan RSVP via QR code, serta rundown interaktif untuk panitia di hari H. Dibangun dengan Next.js 16, React 19, TypeScript, Tailwind CSS, dan Supabase, serta terintegrasi dengan Midtrans, Monaplan hadir sebagai PWA yang cepat, elegan, dan mudah diakses di berbagai perangkat.', 'Monaplan adalah aplikasi web all-in-one digital wedding planner yang dirancang untuk membantu calon pengantin mengelola seluruh tahapan persiapan pernikahan secara terstruktur, kolaboratif, dan terpusat. Berangkat dari masalah persiapan nikah yang sering kali tercecer di berbagai spreadsheet, catatan ponsel, dan riwayat pesan WhatsApp, Monaplan menyatukan seluruh kebutuhan dalam satu workspace cerdas—mulai dari manajemen budget dan cicilan vendor, checklist berbasis adat (Jawa, Sunda, Minang, Bali, Batak, hingga Umum), target tabungan, undangan digital & RSVP via QR code, hingga rundown interaktif untuk panitia pada hari H. Dibangun menggunakan Next.js 16, React 19, TypeScript, Tailwind CSS, dan Supabase (PostgreSQL & Realtime) dengan integrasi pembayaran Midtrans, aplikasi ini mengedepankan performa tinggi, desain elegan bernuansa modern, serta kemudahan akses lintas perangkat (PWA).', NULL, 'https://monaplan.rajistha.my.id/', NULL, TRUE, 0, '2026-11-08T15:14:30.433076+00:00', 'Monaplan is an all-in-one digital wedding planner web application that helps engaged couples manage their wedding preparations within a single, centralized, and collaborative workspace. Its features include budget and vendor installment management, custom checklists tailored to various cultural traditions (such as Javanese, Sundanese, Minangkabau, Balinese, and Batak, as well as general/secular options), savings goal tracking, digital invitations with QR-code-based RSVPs, and an interactive event schedule (rundown) for the wedding day team. Built using Next.js 16, React 19, TypeScript, Tailwind CSS, and Supabase—and integrated with Midtrans—Monaplan functions as a fast, elegant, and easily accessible Progressive Web App (PWA) across various devices.', 'Monaplan is an all-in-one digital wedding planner web application designed to help engaged couples manage every stage of their wedding preparations in a structured, collaborative, and centralized manner. Addressing the common issue of wedding planning details being scattered across various spreadsheets, mobile notes, and WhatsApp message histories, Monaplan consolidates all essential requirements into a single, intelligent workspace. Features include budget and vendor payment management, tradition-specific checklists (covering Javanese, Sundanese, Minang, Balinese, Batak, and general customs), savings goal tracking, digital invitations with QR-code-based RSVPs, and an interactive event rundown for the wedding-day team. Built using Next.js 16, React 19, TypeScript, Tailwind CSS, and Supabase (PostgreSQL & Realtime)—with integrated payment processing via Midtrans—the application prioritizes high performance, an elegant modern design, and seamless cross-device accessibility (PWA).', 'in_progress') on conflict (slug) do update set "title" = excluded."title", "summary" = excluded."summary", "description" = excluded."description", "image_url" = excluded."image_url", "live_url" = excluded."live_url", "repo_url" = excluded."repo_url", "featured" = excluded."featured", "sort_order" = excluded."sort_order", "created_at" = excluded."created_at", "summary_en" = excluded."summary_en", "description_en" = excluded."description_en", "status" = excluded."status";
+
+-- -------------------------------------------------------------------------
+-- Table: project_tech_stacks (53 rows)
+-- -------------------------------------------------------------------------
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', '0464a226-f6eb-4d52-991a-e82f42ec4f10') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', 'bb6341a2-a38d-4c85-9001-d104ccc6802c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', 'f2f9dcca-7221-4914-9ca6-b1257ebc6a3e') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', '6bea3870-c29c-449b-bf5c-ea8885ecbcf6') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', '76db4a33-2e43-4ab0-b6f2-a40586f44263') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('08e2b4c7-9bb5-456a-b380-03d816dfa64d', '86205131-89e5-4b30-a9ff-c38df3c6837f') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', '0464a226-f6eb-4d52-991a-e82f42ec4f10') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', 'bb6341a2-a38d-4c85-9001-d104ccc6802c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '0464a226-f6eb-4d52-991a-e82f42ec4f10') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', 'bb6341a2-a38d-4c85-9001-d104ccc6802c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '602b7a88-ae80-4e71-b3fa-71ee31f2e7f7') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '5100c57d-5544-4bf6-9872-25f1ed1dab97') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '6bea3870-c29c-449b-bf5c-ea8885ecbcf6') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '76db4a33-2e43-4ab0-b6f2-a40586f44263') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('fdcb6eec-957d-4fc5-978e-181507297223', '86205131-89e5-4b30-a9ff-c38df3c6837f') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', '6bea3870-c29c-449b-bf5c-ea8885ecbcf6') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', '76db4a33-2e43-4ab0-b6f2-a40586f44263') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f090fe20-eda8-4da5-b700-96874a08fdf3', '86205131-89e5-4b30-a9ff-c38df3c6837f') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', '0464a226-f6eb-4d52-991a-e82f42ec4f10') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', 'bb6341a2-a38d-4c85-9001-d104ccc6802c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', '62e4c724-c448-4d71-bdff-d16f0a097d8c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', 'f2f9dcca-7221-4914-9ca6-b1257ebc6a3e') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', '6bea3870-c29c-449b-bf5c-ea8885ecbcf6') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('621a0681-805a-4262-af6f-5f7a527eedee', '86205131-89e5-4b30-a9ff-c38df3c6837f') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '2528784c-bf1a-44da-a017-69ca7a03f50e') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '62e4c724-c448-4d71-bdff-d16f0a097d8c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '602b7a88-ae80-4e71-b3fa-71ee31f2e7f7') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '5100c57d-5544-4bf6-9872-25f1ed1dab97') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', 'f2f9dcca-7221-4914-9ca6-b1257ebc6a3e') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '6bea3870-c29c-449b-bf5c-ea8885ecbcf6') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('f520cdfd-8085-4308-8cf7-fd7ab54c5ded', '86205131-89e5-4b30-a9ff-c38df3c6837f') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('008c0126-7566-4832-a7e5-9189ede2894f', '0464a226-f6eb-4d52-991a-e82f42ec4f10') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('008c0126-7566-4832-a7e5-9189ede2894f', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('008c0126-7566-4832-a7e5-9189ede2894f', '76db4a33-2e43-4ab0-b6f2-a40586f44263') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('008c0126-7566-4832-a7e5-9189ede2894f', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '2528784c-bf1a-44da-a017-69ca7a03f50e') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '99bb30d8-47da-47ad-b5a5-b062e064a9ec') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '62e4c724-c448-4d71-bdff-d16f0a097d8c') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '5100c57d-5544-4bf6-9872-25f1ed1dab97') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', 'f2f9dcca-7221-4914-9ca6-b1257ebc6a3e') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '6bea3870-c29c-449b-bf5c-ea8885ecbcf6') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '5ccca9e8-dce6-4166-83d3-d748a86a3dad') on conflict (project_id, tech_stack_id) do nothing;
+insert into "project_tech_stacks" ("project_id", "tech_stack_id") values ('62aec04c-2830-4980-ae6e-4500c48ca0f4', '86205131-89e5-4b30-a9ff-c38df3c6837f') on conflict (project_id, tech_stack_id) do nothing;
+
+-- -------------------------------------------------------------------------
+-- Table: short_links (4 rows)
+-- -------------------------------------------------------------------------
+insert into "short_links" ("id", "slug", "destination_url", "title", "description", "clicks", "is_pinned", "is_public", "created_at", "updated_at") values ('fd3caa85-a337-4c02-873d-b55964e47f31', 'cv', 'https://rajistha.my.id', 'Curriculum Vitae (CV)', 'Unduh resume / CV terbaru Puja Rajistha', 0, TRUE, TRUE, '2026-11-08T15:33:40.809772+00:00', '2026-11-08T15:33:40.809772+00:00') on conflict (slug) do update set "destination_url" = excluded."destination_url", "title" = excluded."title", "description" = excluded."description", "clicks" = excluded."clicks", "is_pinned" = excluded."is_pinned", "is_public" = excluded."is_public", "created_at" = excluded."created_at", "updated_at" = excluded."updated_at";
+insert into "short_links" ("id", "slug", "destination_url", "title", "description", "clicks", "is_pinned", "is_public", "created_at", "updated_at") values ('5cb555d2-9166-44ac-be73-a0890084a8a3', 'wa', 'https://wa.me/6281234567890?text=Halo%20Puja%20Rajistha,%20saya%20tertarik%20berdiskusi%20mengenai%20proyek%20web', 'WhatsApp Official', 'Hubungi langsung melalui WhatsApp untuk konsultasi cepat', 0, TRUE, TRUE, '2026-11-08T15:33:40.809772+00:00', '2026-11-08T15:33:40.809772+00:00') on conflict (slug) do update set "destination_url" = excluded."destination_url", "title" = excluded."title", "description" = excluded."description", "clicks" = excluded."clicks", "is_pinned" = excluded."is_pinned", "is_public" = excluded."is_public", "created_at" = excluded."created_at", "updated_at" = excluded."updated_at";
+insert into "short_links" ("id", "slug", "destination_url", "title", "description", "clicks", "is_pinned", "is_public", "created_at", "updated_at") values ('9945d3e0-78a4-4b77-9cec-2a06aad29d55', 'memori', 'https://memoribox.id', 'MemoriBox.id Photobooth', 'Platform web operasional terpadu photobooth & photobox di Malang', 0, TRUE, TRUE, '2026-11-08T15:33:40.809772+00:00', '2026-11-08T15:33:40.809772+00:00') on conflict (slug) do update set "destination_url" = excluded."destination_url", "title" = excluded."title", "description" = excluded."description", "clicks" = excluded."clicks", "is_pinned" = excluded."is_pinned", "is_public" = excluded."is_public", "created_at" = excluded."created_at", "updated_at" = excluded."updated_at";
+insert into "short_links" ("id", "slug", "destination_url", "title", "description", "clicks", "is_pinned", "is_public", "created_at", "updated_at") values ('70c7fbc1-fc33-4754-987f-aef5a474d37c', 'snaphub', 'https://snaphub.my.id', 'SnapHub Photobooth', 'Web apps modern untuk layanan sewa photobooth premium', 0, TRUE, TRUE, '2026-11-08T15:33:40.809772+00:00', '2026-11-08T15:33:40.809772+00:00') on conflict (slug) do update set "destination_url" = excluded."destination_url", "title" = excluded."title", "description" = excluded."description", "clicks" = excluded."clicks", "is_pinned" = excluded."is_pinned", "is_public" = excluded."is_public", "created_at" = excluded."created_at", "updated_at" = excluded."updated_at";
+
+
+
+-- =============================================================================
+-- 6. OPTIONAL SAMPLE DATA FOR PORTFOLIO STATS & REKAM JEJAK
+-- =============================================================================
+-- Lepas tanda komentar /* ... */ di bawah ini jika ingin mengisi data awal:
+/*
+insert into portfolio_stats (value, suffix, label, label_en, description, description_en, sort_order)
+values
+  (15, '+', 'Proyek Selesai', 'Projects Delivered', 'Aplikasi web modern, sistem photobooth, & website interaktif.', 'Modern web applications, photobooth systems, & interactive sites.', 1),
+  (99.8, '%', 'Kepuasan Klien', 'Client Satisfaction', 'Berdasarkan ulasan langsung klien bisnis & photobooth.', 'Based on direct reviews from business & photobooth clients.', 2),
+  (3, '+', 'Tahun Pengalaman', 'Years Experience', 'Spesialisasi arsitektur React, Next.js, & Tailwind CSS.', 'Specializing in React, Next.js, & Tailwind CSS architecture.', 3),
+  (10, 'k+', 'Pengguna Terlayani', 'End Users Served', 'Melalui platform web MemoriBox & event digital photobooth.', 'Via MemoriBox web platform & digital photobooth events.', 4);
+*/

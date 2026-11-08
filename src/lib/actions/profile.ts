@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireUser } from "@/lib/actions/require-auth";
 import { deleteStorageFile } from "@/lib/actions/storage";
 import { findUnsafeUrl, normalizeUrl } from "@/lib/actions/validate-url";
@@ -36,13 +37,15 @@ export async function updateProfile(profileId: string, formData: FormData): Prom
   });
   if (urlError) return { error: urlError };
 
-  const { data: existing } = await supabase
+  const admin = createAdminClient();
+
+  const { data: existing } = await admin
     .from("profile")
     .select("avatar_url, cv_url")
     .eq("id", profileId)
     .maybeSingle();
 
-  const { error } = await supabase.from("profile").update(payload).eq("id", profileId);
+  const { error } = await admin.from("profile").update(payload).eq("id", profileId);
   if (error) return { error: error.message };
 
   if (existing?.avatar_url && existing.avatar_url !== payload.avatar_url) {

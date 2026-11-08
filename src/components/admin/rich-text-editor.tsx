@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isSafeUrl } from "@/lib/actions/validate-url";
+import { toast } from "sonner";
 
 export function RichTextEditor({
   name,
@@ -30,6 +31,22 @@ export function RichTextEditor({
   defaultValue?: string | null;
 }) {
   const [html, setHtml] = useState(defaultValue ?? "");
+  const [linkInputOpen, setLinkInputOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+
+  function handleApplyLink() {
+    if (!linkUrl) {
+      setLinkInputOpen(false);
+      return;
+    }
+    if (!isSafeUrl(linkUrl)) {
+      toast.error("Format tautan harus diawali dengan http:// atau https://");
+      return;
+    }
+    editor?.chain().focus().setLink({ href: linkUrl }).run();
+    setLinkUrl("");
+    setLinkInputOpen(false);
+  }
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -141,13 +158,8 @@ export function RichTextEditor({
                 editor.chain().focus().unsetLink().run();
                 return;
               }
-              const url = window.prompt("Link URL");
-              if (!url) return;
-              if (!isSafeUrl(url)) {
-                window.alert("Please enter a valid http:// or https:// URL.");
-                return;
-              }
-              editor.chain().focus().setLink({ href: url }).run();
+              setLinkUrl("");
+              setLinkInputOpen(true);
             }}
             label="Link"
           >
@@ -157,6 +169,46 @@ export function RichTextEditor({
         <EditorContent editor={editor} />
       </div>
       <input type="hidden" name={name} value={html} readOnly />
+
+      {linkInputOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-5 shadow-2xl space-y-3">
+            <h4 className="font-display font-semibold text-sm text-foreground">Masukkan Tautan Web</h4>
+            <input
+              type="url"
+              autoFocus
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://example.com"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleApplyLink();
+                } else if (e.key === "Escape") {
+                  setLinkInputOpen(false);
+                }
+              }}
+              className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs text-foreground focus:border-accent focus:outline-none"
+            />
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setLinkInputOpen(false)}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted hover:text-foreground"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyLink}
+                className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90"
+              >
+                Terapkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

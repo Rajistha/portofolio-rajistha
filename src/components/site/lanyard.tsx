@@ -331,26 +331,60 @@ function Band({
 // so the next delta would equal the whole paused duration and throw the rope
 // physics into one huge catch-up step. Restarting the clock the instant the
 // pause ends makes that first resumed frame see a normal, small delta.
-function ClockResetOnResume({ transitioning }: { transitioning: boolean }) {
+function ClockResetOnResume({ paused }: { paused: boolean }) {
   const { clock } = useThree();
-  const wasTransitioning = useRef(transitioning);
+  const wasPaused = useRef(paused);
 
   useEffect(() => {
-    if (wasTransitioning.current && !transitioning) {
+    if (wasPaused.current && !paused) {
       clock.start();
     }
-    wasTransitioning.current = transitioning;
-  }, [transitioning, clock]);
+    wasPaused.current = paused;
+  }, [paused, clock]);
 
   return null;
 }
 
 export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const isDark = resolvedTheme !== "light";
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
   const [transitioning, setTransitioning] = useState(false);
+  const [inView, setInView] = useState(true);
+  const [readyToDrop, setReadyToDrop] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !window.__preloader_active;
+  });
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
+      { threshold: 0.05, rootMargin: "150px" }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [mounted]);
+
+  useEffect(() => {
+    if (readyToDrop) return;
+
+    const handleSwipe = () => {
+      setTimeout(() => setReadyToDrop(true), 150);
+    };
+
+    window.addEventListener("preloader:swipe", handleSwipe, { once: true });
+    const safety = setTimeout(() => setReadyToDrop(true), 4500);
+
+    return () => {
+      window.removeEventListener("preloader:swipe", handleSwipe);
+      clearTimeout(safety);
+    };
+  }, [readyToDrop]);
 
   useEffect(() => {
     // next-themes only resolves the real theme after mount; this avoids a
@@ -385,19 +419,21 @@ export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
 
   if (!mounted) return null;
 
+  const isPaused = transitioning || !readyToDrop || !inView;
+
   return (
-    <div className="relative h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
       <Canvas
         camera={{ position: [0, CAMERA_Y, CAMERA_DISTANCE], rotation: [0, 0, 0], fov: CAMERA_FOV }}
-        dpr={[1, isMobile ? 1.5 : 2]}
-        gl={{ alpha: true }}
-        frameloop={transitioning ? "never" : "always"}
+        dpr={[1, 1.5]}
+        gl={{ alpha: true, powerPreference: "high-performance", antialias: true }}
+        frameloop={isPaused ? "never" : "always"}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 0)}
       >
-        <ClockResetOnResume transitioning={transitioning} />
+        <ClockResetOnResume paused={isPaused} />
         <ambientLight intensity={Math.PI} />
         <directionalLight position={[3, 5, 6]} intensity={0.6} />
-        <Physics gravity={[0, -40, 0]} timeStep={isMobile ? 1 / 30 : 1 / 60} paused={transitioning}>
+        <Physics gravity={[0, -40, 0]} timeStep={isMobile ? 1 / 30 : 1 / 60} paused={isPaused}>
           <Suspense fallback={null}>
             <Band isMobile={isMobile} photoUrl={photoUrl ?? ""} isDark={isDark} />
           </Suspense>

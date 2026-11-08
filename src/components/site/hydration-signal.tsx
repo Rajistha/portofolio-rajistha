@@ -5,6 +5,7 @@ import { useEffect } from "react";
 declare global {
   interface Window {
     __portfolio_ready?: boolean;
+    __preloader_active?: boolean;
   }
 }
 

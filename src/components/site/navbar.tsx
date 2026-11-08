@@ -9,17 +9,20 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { useDismissableOverlay } from "@/hooks/use-dismissable-overlay";
 
-export function Navbar() {
+export function Navbar({ hasExperience = true }: { hasExperience?: boolean }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   useDismissableOverlay(open, () => setOpen(false));
 
-  const links = [
+  const allLinks = [
     { href: "#about", label: t.nav.about },
+    { href: "#experience", label: t.nav.experience, show: hasExperience },
     { href: "#stack", label: t.nav.stack },
     { href: "#work", label: t.nav.work },
     { href: "#contact", label: t.nav.contact },
   ];
+
+  const links = allLinks.filter((l) => l.show !== false);
 
   return (
     <motion.header

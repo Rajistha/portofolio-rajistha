@@ -43,3 +43,63 @@ export type Project = {
   created_at: string;
   tech_stacks?: TechStack[];
 };
+
+export type ShortLink = {
+  id: string;
+  slug: string;
+  destination_url: string;
+  title: string;
+  description?: string | null;
+  clicks: number;
+  is_pinned: boolean;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PortfolioStat = {
+  id: string;
+  value: number;
+  suffix: string;
+  label: string;
+  label_en: string | null;
+  description: string;
+  description_en: string | null;
+  sort_order: number;
+  created_at?: string;
+};
+
+export type ExperienceCategory = "education" | "work" | "organization" | "project";
+
+export type Experience = {
+  id: string;
+  category?: ExperienceCategory | string;
+  period: string;
+  role: string;
+  role_en: string | null;
+  company: string;
+  location: string;
+  description: string;
+  description_en: string | null;
+  achievements: string;
+  achievements_en: string | null;
+  skills: string;
+  is_current: boolean;
+  sort_order: number;
+  created_at?: string;
+};
+
+export type Testimonial = {
+  id: string;
+  name: string;
+  role: string;
+  role_en: string | null;
+  company: string;
+  avatar_url?: string | null;
+  rating: number;
+  content: string;
+  content_en: string | null;
+  project_ref?: string | null;
+  sort_order: number;
+  created_at?: string;
+};
