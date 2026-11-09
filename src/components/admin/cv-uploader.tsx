@@ -3,12 +3,12 @@
 import { useState, type ChangeEvent } from "react";
 import { UploadCloud, Loader2, FileText, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
-import { uploadCvFile } from "@/lib/actions/upload";
+import { createSignedUploadUrl } from "@/lib/actions/upload";
 
 function friendlyErrorMessage(err: unknown): string {
-  const message = err instanceof Error ? err.message : "";
+  const message = err instanceof Error ? err.message : String(err);
   if (!message || /Minified React error/i.test(message)) {
-    return "Upload failed. The file may be too large, or something went wrong on the server.";
+    return "Upload gagal. File mungkin terlalu besar atau terjadi kesalahan.";
   }
   return message;
 }
@@ -25,31 +25,69 @@ export function CvUploader({
   const [url, setUrl] = useState(defaultValue ?? "");
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side validation
+    const lastDot = file.name.lastIndexOf(".");
+    const ext = lastDot !== -1 ? file.name.slice(lastDot).toLowerCase() : "";
+    const allowed = [".pdf", ".doc", ".docx"];
+    if (!allowed.includes(ext)) {
+      setError("Format tidak didukung. Gunakan PDF atau Word (.doc/.docx).");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setError("Ukuran file maksimal 20MB.");
+      e.target.value = "";
+      return;
+    }
+
     setUploading(true);
     setError(null);
-
-    const formData = new FormData();
-    formData.set("file", file);
+    setProgress(0);
 
     try {
-      const result = await uploadCvFile(formData);
+      // 1. Dapatkan signed upload URL dari server (tidak ada file yang lewat Vercel)
+      const signed = await createSignedUploadUrl("documents", file.name, "cv");
 
-      if (result.error || !result.url) {
-        const message = result.error ?? "Upload failed.";
-        setError(message);
-        toast.error(message);
-        return;
+      if (signed.error || !signed.signedUrl || !signed.publicUrl) {
+        throw new Error(signed.error ?? "Gagal membuat upload URL.");
       }
 
-      setUrl(result.url);
-      setFileName(result.name ?? file.name);
-      toast.success("File CV berhasil diunggah.");
+      // 2. Upload langsung dari browser ke Supabase Storage menggunakan XHR
+      //    agar bisa melacak progress
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", signed.signedUrl!);
+        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            setProgress(Math.round((ev.loaded / ev.total) * 100));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload gagal: HTTP ${xhr.status} — ${xhr.responseText}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Koneksi terputus saat upload."));
+        xhr.send(file);
+      });
+
+      // 3. Simpan public URL ke state
+      setUrl(signed.publicUrl);
+      setFileName(file.name);
+      setProgress(100);
+      toast.success("File CV berhasil diunggah langsung ke Supabase.");
     } catch (err) {
       const message = friendlyErrorMessage(err);
       setError(message);
@@ -57,6 +95,9 @@ export function CvUploader({
     } finally {
       setUploading(false);
     }
+
+    // Reset input agar file yang sama bisa dipilih lagi
+    e.target.value = "";
   }
 
   const isUploadedToSupabase = url.includes("/storage/v1/object/public/documents");
@@ -78,7 +119,7 @@ export function CvUploader({
       </div>
 
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-        {/* Input Text URL (supports external links & uploaded URL) */}
+        {/* Input Text URL */}
         <div className="relative flex-1">
           <input
             type="text"
@@ -97,6 +138,7 @@ export function CvUploader({
               onClick={() => {
                 setUrl("");
                 setFileName(null);
+                setProgress(0);
               }}
               title="Hapus CV"
               className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted hover:text-foreground"
@@ -113,7 +155,7 @@ export function CvUploader({
           ) : (
             <UploadCloud className="h-4 w-4" />
           )}
-          <span>{uploading ? "Mengunggah…" : "Upload file CV"}</span>
+          <span>{uploading ? `Mengunggah… ${progress}%` : "Upload file CV"}</span>
           <input
             type="file"
             accept=".pdf,.doc,.docx,application/pdf"
@@ -124,7 +166,17 @@ export function CvUploader({
         </label>
       </div>
 
-      {/* Info status preview */}
+      {/* Progress bar */}
+      {uploading && (
+        <div className="h-1 w-full overflow-hidden rounded-full bg-surface-2">
+          <div
+            className="h-full rounded-full bg-accent transition-all duration-200"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+
+      {/* Status info */}
       {url ? (
         <div className="flex items-center gap-2 rounded-lg bg-surface-2/60 px-3 py-1.5 text-xs text-muted">
           <FileText className="h-3.5 w-3.5 text-accent shrink-0" />
@@ -138,7 +190,8 @@ export function CvUploader({
         </div>
       ) : (
         <p className="text-[11px] text-muted">
-          Format file didukung: PDF, Word (.doc, .docx). Anda juga bisa langsung menempelkan link Google Drive / Dropbox jika tidak ingin mengunggah file.
+          Format didukung: PDF, Word (.doc, .docx). Upload langsung ke Supabase — tidak ada batas ukuran Vercel.
+          Anda juga bisa menempelkan link Google Drive / Dropbox.
         </p>
       )}
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, type ChangeEvent } from "react";
 import { UploadCloud, Loader2, RotateCcw, X, Globe, Camera, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { uploadImage } from "@/lib/actions/upload";
+import { createSignedUploadUrl } from "@/lib/actions/upload";
 import { fetchWebsitePreview } from "@/lib/actions/preview";
 import { getAutoScreenshotUrl, getGitHubOgUrl } from "@/lib/project-image";
 
@@ -110,25 +110,37 @@ export function ImageUploader({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      toast.error("Hanya file gambar yang diizinkan.");
+      e.target.value = "";
+      return;
+    }
+
     setUploading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.set("file", file);
-
     try {
-      const result = await uploadImage(bucket, formData);
+      // Dapatkan signed upload URL — tidak ada file yang lewat Vercel
+      const signed = await createSignedUploadUrl(bucket, file.name);
 
-      if (result.error || !result.url) {
-        const message = result.error ?? "Upload failed.";
-        setError(message);
-        toast.error(message);
-        return;
+      if (signed.error || !signed.signedUrl || !signed.publicUrl) {
+        throw new Error(signed.error ?? "Gagal membuat upload URL.");
       }
 
-      setUrl(result.url);
+      // Upload langsung dari browser ke Supabase
+      const res = await fetch(signed.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Upload gagal: HTTP ${res.status}`);
+      }
+
+      setUrl(signed.publicUrl);
       setImgError(false);
-      toast.success("Image uploaded.");
+      toast.success("Gambar berhasil diunggah langsung ke Supabase.");
     } catch (err) {
       const message = friendlyErrorMessage(err);
       setError(message);
@@ -136,6 +148,8 @@ export function ImageUploader({
     } finally {
       setUploading(false);
     }
+
+    e.target.value = "";
   }
 
   return (

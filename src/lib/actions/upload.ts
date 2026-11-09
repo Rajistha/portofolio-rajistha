@@ -7,6 +7,60 @@ import type { ActionResult } from "@/lib/actions/projects";
 const ALLOWED_BUCKETS = ["project-images", "avatars", "documents"] as const;
 type UploadBucket = (typeof ALLOWED_BUCKETS)[number];
 
+/**
+ * Creates a signed upload URL so the browser can upload directly to
+ * Supabase Storage — bypassing the Vercel function body-size limit entirely.
+ * Returns { signedUrl, path, publicUrl } on success.
+ */
+export async function createSignedUploadUrl(
+  bucket: UploadBucket,
+  filename: string,
+  folder?: string
+): Promise<ActionResult & { signedUrl?: string; path?: string; publicUrl?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "You must be signed in to upload files." };
+  if (!ALLOWED_BUCKETS.includes(bucket)) return { error: "Invalid upload target." };
+
+  const admin = createAdminClient();
+
+  // Ensure documents bucket is public when needed
+  if (bucket === "documents") {
+    try {
+      const { data: bucketData } = await admin.storage.getBucket(bucket);
+      if (!bucketData) {
+        await admin.storage.createBucket(bucket, { public: true });
+      }
+    } catch {
+      // ignore — bucket may already exist
+    }
+  }
+
+  const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = folder ? `${folder}/${Date.now()}-${cleanName}` : `${Date.now()}-${cleanName}`;
+
+  const { data, error } = await admin.storage
+    .from(bucket)
+    .createSignedUploadUrl(path, { upsert: true });
+
+  if (error || !data) return { error: error?.message ?? "Failed to create upload URL." };
+
+  const { data: pub } = admin.storage.from(bucket).getPublicUrl(path);
+
+  return {
+    signedUrl: data.signedUrl,
+    path,
+    publicUrl: pub.publicUrl,
+  };
+}
+
+/**
+ * Legacy server-side upload — kept for small files or server-to-server use.
+ * For client uploads prefer createSignedUploadUrl + direct PUT from the browser.
+ */
 export async function uploadImage(
   bucket: UploadBucket,
   formData: FormData
@@ -40,6 +94,10 @@ export async function uploadImage(
   return { url: data.publicUrl };
 }
 
+/**
+ * Legacy CV upload via server — file passes through Vercel (4.5 MB limit applies).
+ * Use createSignedUploadUrl + direct PUT instead for large files.
+ */
 export async function uploadCvFile(
   formData: FormData
 ): Promise<ActionResult & { url?: string; name?: string }> {
@@ -68,7 +126,6 @@ export async function uploadCvFile(
   const admin = createAdminClient();
   const bucket = "documents";
 
-  // Ensure documents bucket exists and is public
   try {
     const { data: bucketData } = await admin.storage.getBucket(bucket);
     if (!bucketData) {
