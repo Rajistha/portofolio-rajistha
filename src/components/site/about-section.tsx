@@ -14,7 +14,7 @@ export function AboutSection({ profile }: { profile: Profile | null }) {
   const bioHtml = DOMPurify.sanitize(bio || `<p>${t.about.defaultBio}</p>`);
 
   return (
-    <section id="about" className="mx-auto max-w-5xl px-6 py-24">
+    <section id="about" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <Reveal>
         <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 01. ABOUT</p>
         <h2 className="mb-6 font-display text-3xl sm:text-4xl">{t.about.title}</h2>

@@ -148,7 +148,7 @@ export function GitHubActivity({
   const targetUrl = githubUrl || `https://github.com/${username}`;
 
   return (
-    <section className="relative py-16 px-6 border-t border-border/50">
+    <section className="relative py-12 sm:py-16 px-4 sm:px-6 border-t border-border/50">
       <div className="mx-auto max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -185,45 +185,54 @@ export function GitHubActivity({
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="rounded-xl border border-border/50 bg-surface-2/40 p-3 sm:p-4 flex items-center gap-3">
-              <div className="rounded-lg bg-accent/15 p-2 text-accent">
-                <GitCommit className="h-4 w-4" />
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="rounded-xl border border-border/50 bg-surface-2/40 p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <div className="rounded-lg bg-accent/15 p-1.5 sm:p-2 text-accent shrink-0">
+                <GitCommit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
-              <div>
-                <span className="font-display font-bold text-lg sm:text-xl text-foreground block">
+              <div className="min-w-0">
+                <span className="font-display font-bold text-base sm:text-xl text-foreground block leading-tight">
                   {totalContribs.toLocaleString()}
                 </span>
-                <span className="text-[10px] sm:text-xs font-mono text-muted uppercase">
-                  {isId ? "Kontribusi 1 Tahun" : "Total Commits (1Y)"}
+                <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
+                  {isId ? "Kontribusi" : "Commits"}
+                </span>
+                <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
+                  {isId ? "1 Tahun" : "(1 Year)"}
                 </span>
               </div>
             </div>
 
-            <div className="rounded-xl border border-border/50 bg-surface-2/40 p-3 sm:p-4 flex items-center gap-3">
-              <div className="rounded-lg bg-amber-500/15 p-2 text-amber-400">
-                <Flame className="h-4 w-4" />
+            <div className="rounded-xl border border-border/50 bg-surface-2/40 p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <div className="rounded-lg bg-amber-500/15 p-1.5 sm:p-2 text-amber-400 shrink-0">
+                <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
-              <div>
-                <span className="font-display font-bold text-lg sm:text-xl text-foreground block">
-                  {currentStreak} Hari
+              <div className="min-w-0">
+                <span className="font-display font-bold text-base sm:text-xl text-foreground block leading-tight">
+                  {currentStreak}
                 </span>
-                <span className="text-[10px] sm:text-xs font-mono text-muted uppercase">
-                  {isId ? "Streak Berjalan" : "Current Streak"}
+                <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
+                  {isId ? "Streak" : "Current"}
+                </span>
+                <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
+                  {isId ? "Berjalan" : "Streak"}
                 </span>
               </div>
             </div>
 
-            <div className="rounded-xl border border-border/50 bg-surface-2/40 p-3 sm:p-4 flex items-center gap-3">
-              <div className="rounded-lg bg-emerald-500/15 p-2 text-emerald-400">
-                <Trophy className="h-4 w-4" />
+            <div className="rounded-xl border border-border/50 bg-surface-2/40 p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <div className="rounded-lg bg-emerald-500/15 p-1.5 sm:p-2 text-emerald-400 shrink-0">
+                <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
-              <div>
-                <span className="font-display font-bold text-lg sm:text-xl text-foreground block">
-                  {longestStreak} Hari
+              <div className="min-w-0">
+                <span className="font-display font-bold text-base sm:text-xl text-foreground block leading-tight">
+                  {longestStreak}
                 </span>
-                <span className="text-[10px] sm:text-xs font-mono text-muted uppercase">
-                  {isId ? "Streak Terpanjang" : "Longest Streak"}
+                <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
+                  {isId ? "Streak" : "Longest"}
+                </span>
+                <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
+                  {isId ? "Terpanjang" : "Streak"}
                 </span>
               </div>
             </div>
@@ -249,14 +258,14 @@ export function GitHubActivity({
             </div>
 
             {/* Hover tooltip text & Legend */}
-            <div className="flex flex-wrap items-center justify-between text-xs text-muted pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted pt-1">
               <div className="font-mono text-[11px]">
                 {hoveredCell ? (
                   <span className="text-foreground">
                     <strong className="text-accent">{hoveredCell.count} kontribusi</strong> pada {hoveredCell.date}
                   </span>
                 ) : (
-                  <span>Hover kotak untuk detail tanggal &amp; kontribusi</span>
+                  <span className="hidden sm:inline">Hover kotak untuk detail tanggal &amp; kontribusi</span>
                 )}
               </div>
 

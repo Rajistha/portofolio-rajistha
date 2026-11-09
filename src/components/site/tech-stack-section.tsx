@@ -10,7 +10,7 @@ export function TechStackSection({ techStacks }: { techStacks: TechStack[] }) {
   const categories = Array.from(new Set(techStacks.map((tech) => tech.category)));
 
   return (
-    <section id="stack" className="mx-auto max-w-5xl px-6 py-24">
+    <section id="stack" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <Reveal>
         <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 02. TECH STACK</p>
         <h2 className="mb-14 font-display text-3xl sm:text-4xl">{t.stack.title}</h2>

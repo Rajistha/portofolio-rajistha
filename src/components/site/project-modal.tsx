@@ -51,7 +51,7 @@ export function ProjectModal({
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-project-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-md"
         >
           {/* macOS App Window with Spring Launch Physics & Precise Corner Clipping */}
           <motion.div
@@ -66,10 +66,10 @@ export function ProjectModal({
               mass: 0.85,
             }}
             onClick={(e) => e.stopPropagation()}
-            className="relative flex flex-col w-full max-w-2xl max-h-[88vh] rounded-3xl border border-white/10 bg-surface/95 backdrop-blur-xl shadow-[0_25px_80px_rgba(0,0,0,0.85)] overflow-hidden"
+            className="relative flex flex-col w-full max-w-2xl max-h-[92vh] sm:max-h-[88vh] rounded-2xl sm:rounded-3xl border border-white/10 bg-surface/95 backdrop-blur-xl shadow-[0_25px_80px_rgba(0,0,0,0.85)] overflow-hidden"
           >
             {/* macOS Title Bar with Traffic Lights */}
-            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border/60 bg-surface-2/40 px-6 py-4">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 bg-surface-2/40 px-4 sm:px-6 py-3 sm:py-4">
               <div className="flex items-center gap-3">
                 {/* Traffic Light Dots */}
                 <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ export function ProjectModal({
             </div>
 
             {/* Scrollable Content Body (Strictly clipped inside window, no leaking) */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 overscroll-contain">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-5 sm:space-y-6 overscroll-contain">
               <div>
                 <h3 id="modal-project-title" className="font-display text-2xl sm:text-3xl font-bold text-foreground">
                   {project.title}

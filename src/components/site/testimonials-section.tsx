@@ -14,7 +14,7 @@ export function TestimonialsSection({ testimonials }: { testimonials?: Testimoni
   }
 
   return (
-    <section id="testimonials" className="relative py-20 px-6 border-t border-border/50">
+    <section id="testimonials" className="relative py-16 sm:py-20 px-4 sm:px-6 border-t border-border/50">
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <motion.div

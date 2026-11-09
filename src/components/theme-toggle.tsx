@@ -60,9 +60,10 @@ export function ThemeToggle({ className }: { className?: string }) {
           clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
         },
         {
-          duration: 550,
-          easing: "ease-in-out",
+          duration: 350,
+          easing: "ease-out",
           pseudoElement: "::view-transition-new(root)",
+          fill: "forwards",
         }
       );
       animation.finished.finally(() => {

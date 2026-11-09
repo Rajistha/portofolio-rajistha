@@ -69,7 +69,7 @@ export function ExperienceSection({ experiences }: { experiences?: Experience[] 
     : experiences.filter((e) => (e.category || "work") === selectedCategory);
 
   return (
-    <section id="experience" className="relative py-20 px-6">
+    <section id="experience" className="relative py-16 sm:py-20 px-4 sm:px-6">
       <div className="mx-auto max-w-5xl">
         {/* Eyebrow and Section Header */}
         <motion.div
@@ -94,33 +94,35 @@ export function ExperienceSection({ experiences }: { experiences?: Experience[] 
 
         {/* Category Filter Tabs (if there are multiple categories) */}
         {availableCategories.length > 1 && (
-          <div className="flex flex-wrap items-center gap-2 mb-10 pb-2">
-            {tabs.map((tab) => {
-              const active = selectedCategory === tab.key;
-              const TabIcon = tab.icon;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setSelectedCategory(tab.key)}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-medium transition-all ${
-                    active
-                      ? "bg-accent text-background font-semibold shadow-xs"
-                      : "border border-border/80 bg-surface/60 text-muted hover:border-accent/40 hover:text-foreground backdrop-blur-xs"
-                  }`}
-                >
-                  <TabIcon className="h-3.5 w-3.5" />
-                  <span>{tab.label}</span>
-                  <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-mono ${
-                      active ? "bg-background/20 text-background" : "bg-surface-2 text-muted"
+          <div className="overflow-x-auto pb-2 mb-8 sm:mb-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex items-center gap-2 min-w-max">
+              {tabs.map((tab) => {
+                const active = selectedCategory === tab.key;
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setSelectedCategory(tab.key)}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap ${
+                      active
+                        ? "bg-accent text-background font-semibold shadow-xs"
+                        : "border border-border/80 bg-surface/60 text-muted hover:border-accent/40 hover:text-foreground backdrop-blur-xs"
                     }`}
                   >
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
+                    <TabIcon className="h-3.5 w-3.5" />
+                    <span>{tab.label}</span>
+                    <span
+                      className={`rounded-full px-1.5 py-0.2 text-[10px] font-mono ${
+                        active ? "bg-background/20 text-background" : "bg-surface-2 text-muted"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 

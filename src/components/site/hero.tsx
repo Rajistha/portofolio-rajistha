@@ -34,7 +34,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
   const tagline = profile?.tagline ?? "I build fast, accessible, beautiful interfaces.";
 
   return (
-    <section className="relative flex min-h-screen items-center px-6 pt-28 pb-20">
+    <section className="relative flex min-h-screen items-center px-4 sm:px-6 pt-24 pb-16 sm:pt-28 sm:pb-20">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hero-grid" />
 
       <div className="mx-auto grid w-full max-w-5xl items-center gap-8">
@@ -52,7 +52,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
             initial="hidden"
             animate="visible"
             transition={{ delayChildren: 0.15, staggerChildren: 0.035 }}
-            className="font-display text-5xl leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
+            className="font-display text-4xl leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
             aria-label={name}
           >
             {name.split("").map((char, i) => (

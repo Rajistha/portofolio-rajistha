@@ -19,7 +19,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
   });
 
   return (
-    <section id="work" className="mx-auto max-w-5xl px-6 py-24">
+    <section id="work" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
         <Reveal>
           <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 03. SELECTED WORK</p>
