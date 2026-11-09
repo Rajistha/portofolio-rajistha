@@ -151,18 +151,14 @@ export function ExperienceSection({ experiences }: { experiences?: Experience[] 
                   transition={{ duration: 0.4, delay: idx * 0.08 }}
                   className="relative group"
                 >
-                  {/* Glowing Timeline Marker Dot */}
+                  {/* Timeline Marker Dot */}
                   <div
-                    className={`absolute -left-[31px] sm:-left-[39px] top-1.5 h-4 w-4 rounded-full border-2 transition-all duration-300 ${
+                    className={`absolute -left-[31px] sm:-left-[39px] top-2 h-3.5 w-3.5 rounded-full border-2 transition-colors duration-200 ${
                       exp.is_current
-                        ? "border-accent bg-background shadow-[0_0_12px_rgba(255,107,74,0.6)]"
-                        : `${catConfig.dotBorder} bg-surface group-hover:scale-110`
+                        ? "border-accent bg-accent"
+                        : `${catConfig.dotBorder} bg-surface`
                     }`}
-                  >
-                    {exp.is_current && (
-                      <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
-                    )}
-                  </div>
+                  />
 
                   {/* Card wrapper */}
                   <div className="rounded-2xl border border-border/70 bg-surface/60 p-6 sm:p-7 backdrop-blur-xs transition-all duration-300 hover:border-accent/40 hover:bg-surface shadow-xs">
