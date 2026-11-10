@@ -11,7 +11,9 @@ import { GitHubActivity } from "@/components/site/github-activity";
 import { ContactSection } from "@/components/site/contact-section";
 import { Footer } from "@/components/site/footer";
 import { BackToTop } from "@/components/site/back-to-top";
+import { ScrollProgress } from "@/components/site/scroll-progress";
 import { getProfile, getProjects, getTechStacks, getStats, getExperiences, getTestimonials } from "@/lib/data";
+import { getPublishedPosts, getSiteSettings } from "@/lib/data-public";
 import { SITE_URL } from "@/lib/site";
 
 // Revalidate page cache every 60 seconds (ISR), or instantly via revalidatePath
@@ -33,13 +35,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [profile, techStacks, projects, stats, experiences, testimonials] = await Promise.all([
+  const [profile, techStacks, projects, stats, experiences, testimonials, latestPosts, settings] = await Promise.all([
     getProfile(),
     getTechStacks(),
     getProjects(),
     getStats(),
     getExperiences(),
     getTestimonials(),
+    getPublishedPosts(1),
+    getSiteSettings(),
   ]);
 
   const name = profile?.name ?? "Your Name";
@@ -64,9 +68,10 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
-      <Navbar hasExperience={experiences.length > 0} />
+      <ScrollProgress />
+      <Navbar hasExperience={experiences.length > 0} hasBlog={latestPosts.length > 0} />
       <main id="main" className="flex-1">
-        <Hero profile={profile} />
+        <Hero profile={profile} lanyardEnabled={settings.lanyard_enabled} />
         <StatsCounter stats={stats} />
         <AboutSection profile={profile} />
         <ExperienceSection experiences={experiences} />
@@ -76,7 +81,7 @@ export default async function Home() {
         <GitHubActivity username="rajistha" githubUrl={profile?.github_url} />
         <ContactSection profile={profile} />
       </main>
-      <Footer name={name} profile={profile} />
+      <Footer name={name} profile={profile} hasBlog={latestPosts.length > 0} />
       <BackToTop />
     </>
   );

@@ -4,10 +4,13 @@ import { useState } from "react";
 import { Reveal, RevealStagger } from "@/components/ui/reveal";
 import { ProjectCard } from "@/components/site/project-card";
 import { useLanguage } from "@/components/language-provider";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FolderKanban } from "lucide-react";
 import type { Project } from "@/types/database";
 
 export function ProjectsSection({ projects }: { projects: Project[] }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isId = language === "id";
   const [filter, setFilter] = useState<"all" | "completed" | "in_progress">("all");
 
   const hasInProgress = projects.some((p) => p.status === "in_progress");
@@ -22,7 +25,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
     <section id="work" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
         <Reveal>
-          <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 03. SELECTED WORK</p>
+          <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">{"// 04. SELECTED WORK"}</p>
           <h2 className="font-display text-3xl sm:text-4xl">{t.work.title}</h2>
         </Reveal>
 
@@ -34,7 +37,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
                 <button
                   type="button"
                   onClick={() => setFilter("all")}
-                  className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-medium transition-all ${
+                  className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] ${
                     filter === "all"
                       ? "bg-foreground text-background shadow-xs"
                       : "text-muted hover:text-foreground"
@@ -45,7 +48,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
                 <button
                   type="button"
                   onClick={() => setFilter("completed")}
-                  className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-medium transition-all ${
+                  className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] ${
                     filter === "completed"
                       ? "bg-foreground text-background shadow-xs"
                       : "text-muted hover:text-foreground"
@@ -58,7 +61,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
                 <button
                   type="button"
                   onClick={() => setFilter("in_progress")}
-                  className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium transition-all ${
+                  className={`flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] ${
                     filter === "in_progress"
                       ? "bg-amber-500 font-semibold text-black shadow-xs"
                       : "text-muted hover:text-foreground"
@@ -79,9 +82,9 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
       </div>
 
       {projects.length === 0 ? (
-        <p className="text-muted">{t.work.empty}</p>
+        <EmptyState icon={FolderKanban} title={t.work.empty} />
       ) : filteredProjects.length === 0 ? (
-        <p className="text-muted">Tidak ada proyek dalam kategori ini.</p>
+        <EmptyState icon={FolderKanban} title={isId ? "Tidak ada proyek dalam kategori ini." : "No projects in this category."} />
       ) : (
         <RevealStagger key={filter} className="grid gap-6 sm:grid-cols-2">
           {filteredProjects.map((project) => (

@@ -4,6 +4,8 @@ export const RESERVED_SLUGS = new Set([
   "admin",
   "api",
   "links",
+  "blog",
+  "projects",
   "s",
   "icon",
   "sitemap",

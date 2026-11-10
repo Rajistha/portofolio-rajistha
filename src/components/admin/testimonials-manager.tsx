@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, MessageSquare, Star, Building2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -16,9 +16,11 @@ export function TestimonialsManager({ initialTestimonials }: { initialTestimonia
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initialTestimonials);
+  if (prevInitial !== initialTestimonials) {
+    setPrevInitial(initialTestimonials);
     setTestimonials(initialTestimonials);
-  }, [initialTestimonials]);
+  }
 
   function handleConfirmDelete() {
     if (!deleteTarget) return;
@@ -77,7 +79,7 @@ export function TestimonialsManager({ initialTestimonials }: { initialTestimonia
           <MessageSquare className="mx-auto h-8 w-8 text-muted/60 mb-3" />
           <p className="text-sm font-medium text-foreground">Belum ada testimoni klien</p>
           <p className="text-xs text-muted mt-1">
-            Klik tombol "Tambah Testimoni" untuk memasukkan ulasan pertama dari partner bisnis atau klien Anda.
+            Klik tombol &quot;Tambah Testimoni&quot; untuk memasukkan ulasan pertama dari partner bisnis atau klien Anda.
           </p>
         </div>
       ) : (
@@ -120,7 +122,7 @@ export function TestimonialsManager({ initialTestimonials }: { initialTestimonia
                 </div>
 
                 <p className="text-xs text-foreground/85 italic leading-relaxed line-clamp-4">
-                  "{testi.content}"
+                  &ldquo;{testi.content}&rdquo;
                 </p>
               </div>
 

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Briefcase, Calendar, MapPin, AlertCircle, CheckCircle2, GraduationCap, Users, Rocket, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { saveExperience, deleteExperience } from "@/lib/actions/portfolio";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SortableList } from "@/components/admin/sortable-list";
+import { reorderItems } from "@/lib/actions/reorder";
 import type { Experience } from "@/types/database";
 
 const CATEGORY_MAP: Record<string, { label: string; icon: typeof Briefcase; color: string }> = {
@@ -32,9 +34,25 @@ export function ExperiencesManager({ initialExperiences }: { initialExperiences:
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initialExperiences);
+  if (prevInitial !== initialExperiences) {
+    setPrevInitial(initialExperiences);
     setExperiences(initialExperiences);
-  }, [initialExperiences]);
+  }
+
+  function persistOrder(next: Experience[]) {
+    const previous = prevInitial;
+    startTransition(async () => {
+      const res = await reorderItems("experiences", next.map((e) => e.id));
+      if (res.error) {
+        toast.error(res.error);
+        setExperiences(previous);
+        return;
+      }
+      toast.success("Urutan rekam jejak disimpan.");
+      router.refresh();
+    });
+  }
 
   const filtered = activeFilter === "all" ? experiences : experiences.filter((e) => (e.category || "work") === activeFilter);
 
@@ -55,66 +73,7 @@ export function ExperiencesManager({ initialExperiences }: { initialExperiences:
     });
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Rekam Jejak &amp; Pengalaman</h1>
-          <p className="text-xs sm:text-sm text-muted">Kelola riwayat pendidikan, pengalaman kerja, organisasi, dan proyek untuk linimasa karier.</p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setEditingExp(null);
-            setModalOpen(true);
-          }}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-background hover:opacity-90 transition-opacity self-start sm:self-auto shadow-xs"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Rekam Jejak
-        </button>
-      </div>
-
-      {/* Note about auto-hide */}
-      <div className="rounded-xl border border-border/70 bg-surface-2/40 px-4 py-3 flex items-start gap-2.5 text-xs text-muted">
-        <AlertCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-        <p>
-          <strong className="text-foreground">Info:</strong> Jika belum ada data rekam jejak, seksi linimasa di landing page akan otomatis disembunyikan.
-        </p>
-      </div>
-
-      {/* Filter Category Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
-        {FILTER_TABS.map((tab) => {
-          const TabIcon = tab.icon;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                activeFilter === tab.key ? "bg-accent text-background font-semibold" : "border border-border/70 bg-surface text-muted hover:text-foreground"
-              }`}
-            >
-              <TabIcon className="h-3.5 w-3.5" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Experiences List */}
-      {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-surface p-12 text-center">
-          <Briefcase className="mx-auto h-8 w-8 text-muted/60 mb-3" />
-          <p className="text-sm font-medium text-foreground">{activeFilter === "all" ? "Belum ada riwayat rekam jejak" : `Belum ada data untuk kategori "${CATEGORY_MAP[activeFilter]?.label || activeFilter}"`}</p>
-          <p className="text-xs text-muted mt-1">Klik tombol "Tambah Rekam Jejak" untuk memasukkan data pertama Anda.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filtered.map((exp) => {
+  function renderCard(exp: Experience) {
             const cat = CATEGORY_MAP[exp.category || "work"] || CATEGORY_MAP.work;
             const CatIcon = cat.icon;
             const achievementsList = exp.achievements
@@ -213,8 +172,82 @@ export function ExperiencesManager({ initialExperiences }: { initialExperiences:
                 )}
               </div>
             );
-          })}
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Rekam Jejak &amp; Pengalaman</h1>
+          <p className="text-xs sm:text-sm text-muted">Kelola riwayat pendidikan, pengalaman kerja, organisasi, dan proyek untuk linimasa karier.</p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setEditingExp(null);
+            setModalOpen(true);
+          }}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-background hover:opacity-90 transition-opacity self-start sm:self-auto shadow-xs"
+        >
+          <Plus className="h-4 w-4" />
+          Tambah Rekam Jejak
+        </button>
+      </div>
+
+      {/* Note about auto-hide */}
+      <div className="rounded-xl border border-border/70 bg-surface-2/40 px-4 py-3 flex items-start gap-2.5 text-xs text-muted">
+        <AlertCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+        <p>
+          <strong className="text-foreground">Info:</strong> Jika belum ada data rekam jejak, seksi linimasa di landing page akan otomatis disembunyikan.
+        </p>
+      </div>
+
+      {/* Filter Category Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
+        {FILTER_TABS.map((tab) => {
+          const TabIcon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveFilter(tab.key)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeFilter === tab.key ? "bg-accent text-background font-semibold" : "border border-border/70 bg-surface text-muted hover:text-foreground"
+              }`}
+            >
+              <TabIcon className="h-3.5 w-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Experiences List */}
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-border bg-surface p-12 text-center">
+          <Briefcase className="mx-auto h-8 w-8 text-muted/60 mb-3" />
+          <p className="text-sm font-medium text-foreground">{activeFilter === "all" ? "Belum ada riwayat rekam jejak" : `Belum ada data untuk kategori "${CATEGORY_MAP[activeFilter]?.label || activeFilter}"`}</p>
+          <p className="text-xs text-muted mt-1">Klik tombol &quot;Tambah Rekam Jejak&quot; untuk memasukkan data pertama Anda.</p>
+        </div>
+      ) : (
+        activeFilter === "all" ? (
+          <SortableList
+            items={experiences}
+            onReorder={setExperiences}
+            onCommit={persistOrder}
+            className="space-y-4"
+            renderItem={renderCard}
+          />
+        ) : (
+          <div className="space-y-4">
+            {filtered.map(renderCard)}
+            <p className="text-center text-[11px] text-muted">
+              Pilih kategori &quot;Semua Kategori&quot; untuk mengatur urutan dengan drag-and-drop.
+            </p>
+          </div>
+        )
       )}
 
       {/* Modal Form */}

@@ -1,18 +1,21 @@
 import Link from "next/link";
-import { FolderKanban, Cpu, ArrowUpRight, Briefcase, MessageSquare, BarChart3, Link2, ExternalLink, Plus } from "lucide-react";
+import { FolderKanban, Cpu, ArrowUpRight, Briefcase, MessageSquare, BarChart3, Link2, ExternalLink, Plus, PenLine, Inbox } from "lucide-react";
 import { getProjects, getTechStacks, getExperiences, getTestimonials, getStats } from "@/lib/data";
 import { getShortLinks } from "@/lib/actions/links";
+import { getAllPosts, getMessages } from "@/lib/admin-data";
 
 export const revalidate = 0;
 
 export default async function AdminDashboardPage() {
-  const [projects, techStacks, experiences, testimonials, statsData, shortLinks] = await Promise.all([
+  const [projects, techStacks, experiences, testimonials, statsData, shortLinks, posts, messages] = await Promise.all([
     getProjects(),
     getTechStacks(),
     getExperiences(),
     getTestimonials(),
     getStats(),
     getShortLinks(false),
+    getAllPosts(),
+    getMessages(),
   ]);
 
   const cards = [
@@ -22,6 +25,8 @@ export default async function AdminDashboardPage() {
     { label: "Testimoni Klien", value: testimonials.length, href: "/admin/testimonials", icon: MessageSquare },
     { label: "Statistik Portofolio", value: statsData.length, href: "/admin/stats", icon: BarChart3 },
     { label: "Short Links", value: shortLinks.length, href: "/admin/links", icon: Link2 },
+    { label: "Tulisan Blog", value: posts.length, href: "/admin/blog", icon: PenLine },
+    { label: "Pesan Belum Dibaca", value: messages.filter((m) => !m.is_read).length, href: "/admin/messages", icon: Inbox },
   ];
 
   return (

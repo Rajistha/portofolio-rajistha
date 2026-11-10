@@ -110,7 +110,7 @@ export function FloatingContact({ email = "pujarajistha@gmail.com" }: { email?: 
       )}
 
       {/* Main Floating Trigger Pill */}
-      <div className="flex items-center gap-1.5 rounded-full border border-border bg-surface/90 p-1.5 shadow-xl backdrop-blur-md transition-all hover:border-accent/50 hover:shadow-accent/10">
+      <div className="flex items-center gap-1.5 rounded-full border border-border bg-surface/90 p-1.5 shadow-xl backdrop-blur-md transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] hover:border-accent/50 hover:shadow-accent/10">
         <a
           href={waUrl}
           target="_blank"

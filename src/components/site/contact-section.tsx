@@ -3,7 +3,10 @@
 import { Mail } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";
 import { GithubIcon, InstagramIcon, LinkedinIcon } from "@/components/ui/brand-icons";
+import { ContactForm } from "@/components/site/contact-form";
 import { useLanguage } from "@/components/language-provider";
+import { trackEvent } from "@/lib/track";
+import { gmailComposeUrl, openGmailCompose } from "@/lib/email";
 import type { Profile } from "@/types/database";
 
 export function ContactSection({ profile }: { profile: Profile | null }) {
@@ -12,15 +15,30 @@ export function ContactSection({ profile }: { profile: Profile | null }) {
   return (
     <section id="contact" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <Reveal>
-        <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 04. GET IN TOUCH</p>
+        <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">{"// 06. GET IN TOUCH"}</p>
         <h2 className="max-w-xl font-display text-3xl sm:text-4xl">{t.contact.title}</h2>
+        <p className="mt-4 max-w-xl text-muted">{t.contact.lead}</p>
       </Reveal>
 
       <Reveal delay={0.1}>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        <div className="mt-10 max-w-2xl">
+          <ContactForm />
+        </div>
+      </Reveal>
+
+      <Reveal delay={0.15}>
+        <p className="mt-10 text-xs text-muted">{t.contact.form.directEmail}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           {profile?.email && (
             <a
-              href={`mailto:${profile.email}`}
+              href={gmailComposeUrl({ to: profile.email })}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.preventDefault();
+                trackEvent("contact_click", { label: "email" });
+                openGmailCompose({ to: profile.email! });
+              }}
               className="inline-flex items-center gap-2 rounded-md bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-accent"
             >
               <Mail className="h-4 w-4" />

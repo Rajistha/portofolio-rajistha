@@ -9,6 +9,7 @@ import { useLanguage } from "@/components/language-provider";
 import { resolveProjectImage } from "@/lib/project-image";
 import { ProjectPlaceholder } from "@/components/site/project-placeholder";
 import { ProjectModal } from "@/components/site/project-modal";
+import { trackEvent } from "@/lib/track";
 import type { Project } from "@/types/database";
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -17,6 +18,11 @@ export function ProjectCard({ project }: { project: Project }) {
   const [modalOpen, setModalOpen] = useState(false);
   const isId = language === "id";
   const summary = language === "en" ? project.summary_en || project.summary : project.summary;
+
+  function openModal() {
+    setModalOpen(true);
+    trackEvent("project_open", { label: project.title });
+  }
 
   const resolved = resolveProjectImage(project);
   const imageUrl = !imageError ? resolved.url : null;
@@ -32,7 +38,16 @@ export function ProjectCard({ project }: { project: Project }) {
           className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors duration-300 hover:border-accent/40 hover:shadow-xl hover:shadow-black/50"
         >
           <div
-            onClick={() => setModalOpen(true)}
+            onClick={openModal}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openModal();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`${isId ? "Lihat studi kasus" : "View case study"}: ${project.title}`}
             className="relative aspect-16/10 w-full overflow-hidden rounded-t-lg bg-surface-2 cursor-pointer"
           >
             {imageUrl ? (
@@ -83,7 +98,7 @@ export function ProjectCard({ project }: { project: Project }) {
           <div className="flex flex-1 flex-col p-5 sm:p-6">
             <div className="mb-2 flex items-start justify-between gap-4">
               <h3
-                onClick={() => setModalOpen(true)}
+                onClick={openModal}
                 className="font-display text-xl cursor-pointer hover:text-accent transition-colors"
               >
                 {project.title}

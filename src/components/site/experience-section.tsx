@@ -79,10 +79,10 @@ export function ExperienceSection({ experiences }: { experiences?: Experience[] 
           transition={{ duration: 0.5 }}
           className="mb-8 space-y-2"
         >
-          <p className="font-mono text-xs uppercase tracking-wider text-accent">
-            // 03. {isId ? "REKAM JEJAK & PENGALAMAN" : "CAREER & EDUCATION"}
+          <p className="font-mono text-xs uppercase tracking-widest text-accent font-semibold">
+            {"// 02. "}{isId ? "REKAM JEJAK & PENGALAMAN" : "CAREER & EDUCATION"}
           </p>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+          <h2 className="font-display text-3xl sm:text-4xl">
             {isId ? "Rekam Jejak & Pendidikan." : "Journey & Experience."}
           </h2>
           <p className="max-w-xl text-sm sm:text-base text-muted">
@@ -104,10 +104,10 @@ export function ExperienceSection({ experiences }: { experiences?: Experience[] 
                     key={tab.key}
                     type="button"
                     onClick={() => setSelectedCategory(tab.key)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] whitespace-nowrap ${
                       active
                         ? "bg-accent text-background font-semibold shadow-xs"
-                        : "border border-border/80 bg-surface/60 text-muted hover:border-accent/40 hover:text-foreground backdrop-blur-xs"
+                        : "border border-border/80 bg-surface/60 text-muted hover:border-accent/40 hover:text-foreground"
                     }`}
                   >
                     <TabIcon className="h-3.5 w-3.5" />
@@ -163,7 +163,7 @@ export function ExperienceSection({ experiences }: { experiences?: Experience[] 
                   />
 
                   {/* Card wrapper */}
-                  <div className="rounded-2xl border border-border/70 bg-surface/60 p-6 sm:p-7 backdrop-blur-xs transition-all duration-300 hover:border-accent/40 hover:bg-surface shadow-xs">
+                  <div className="rounded-2xl border border-border/70 bg-surface/60 p-6 sm:p-7 transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] duration-300 hover:border-accent/40 hover:bg-surface shadow-xs">
                     {/* Category pill & Period */}
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">

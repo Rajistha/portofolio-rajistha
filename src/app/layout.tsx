@@ -5,6 +5,8 @@ import { AppToaster } from "@/components/app-toaster";
 import { MotionProvider } from "@/components/motion-provider";
 import { LanguageProvider } from "@/components/language-provider";
 import { HydrationSignal } from "@/components/site/hydration-signal";
+import { PageTracker } from "@/components/site/page-tracker";
+import { getSiteSettings } from "@/lib/data-public";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -58,13 +60,21 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const settings = await getSiteSettings();
+
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}>
       <head>
         {/* Preload the hero lanyard's heaviest asset so it's already in
             flight by the time the 3D component's JS chunk finishes loading. */}
-        <link rel="preload" href="/lanyard/card.glb" as="fetch" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          href="/lanyard/card.glb"
+          as="fetch"
+          crossOrigin="anonymous"
+          media="(min-width: 1024px)"
+        />
         {/* Filter Three.js & Rapier deprecation warnings — runs in <head> before any JS bundle */}
         <script
           dangerouslySetInnerHTML={{
@@ -90,6 +100,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                // Skipped when turned off in admin settings or the visitor prefers reduced motion.
+                if (!${settings.preloader_enabled}) return;
+                try {
+                  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                } catch(e) {}
                 try {
                   var SEEN_KEY = 'portfolio_intro_v5';
                   if (sessionStorage.getItem(SEEN_KEY) === 'true') return;
@@ -102,7 +117,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 // Inject keyframe animation (progress fill only, no pulsing)
                 var style = document.createElement('style');
                 style.textContent =
-                  '@keyframes _pl_fill{0%{width:0%}20%{width:28%}50%{width:62%}80%{width:88%}100%{width:100%}}';
+                  '@keyframes _pl_fill{0%{transform:scaleX(0)}20%{transform:scaleX(.28)}50%{transform:scaleX(.62)}80%{transform:scaleX(.88)}100%{transform:scaleX(1)}}';
                 document.head.appendChild(style);
 
                 // Build overlay element
@@ -148,7 +163,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                     '<h2 style="font-family:system-ui,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;margin:0 0 24px;color:#ededec">Puja Rajistha<span style="color:#ff6b4a">.</span></h2>' +
                     '<div style="width:280px;max-width:90vw">' +
                       '<div style="height:6px;width:100%;border-radius:9999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);padding:1px;margin-bottom:10px;overflow:hidden">' +
-                        '<div id="__pl_bar" style="height:100%;border-radius:9999px;background:linear-gradient(90deg,#ff6b4a,#ff9e7d);box-shadow:0 0 10px rgba(255,107,74,.5);animation:_pl_fill 1.2s cubic-bezier(0.2,0.8,0.2,1) forwards"></div>' +
+                        '<div id="__pl_bar" style="height:100%;width:100%;transform-origin:left center;will-change:transform;border-radius:9999px;background:linear-gradient(90deg,#ff6b4a,#ff9e7d);box-shadow:0 0 10px rgba(255,107,74,.5);animation:_pl_fill 1.2s cubic-bezier(0.2,0.8,0.2,1) forwards"></div>' +
                       '</div>' +
                       '<div style="display:flex;justify-content:space-between;font-size:11px;font-family:ui-monospace,monospace;color:rgba(237,237,236,.45)">' +
                         '<span id="__pl_status">&gt; Initializing...</span>' +
@@ -171,7 +186,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 ];
                 var pctEl = document.getElementById('__pl_pct');
                 var stEl  = document.getElementById('__pl_status');
-                var t0 = Date.now();
+                var t0 = performance.now();
+                var lastPct = -1;
                 var DUR = 1200;
                 var progressDone = false;
                 var appReady = window.__portfolio_ready === true;
@@ -192,12 +208,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 }
 
                 function tick() {
-                  var elapsed = Date.now() - t0;
+                  var elapsed = performance.now() - t0;
                   var pct = Math.min(Math.round((elapsed / DUR) * 100), 100);
-                  if (pctEl) pctEl.textContent = pct + '%';
-                  if (stEl) {
-                    for (var i = msgs.length - 1; i >= 0; i--) {
-                      if (pct >= msgs[i][0]) { stEl.textContent = msgs[i][1]; break; }
+                  if (pct !== lastPct) {
+                    lastPct = pct;
+                    if (pctEl) pctEl.textContent = pct + '%';
+                    if (stEl) {
+                      for (var i = msgs.length - 1; i >= 0; i--) {
+                        if (pct >= msgs[i][0]) { stEl.textContent = msgs[i][1]; break; }
+                      }
                     }
                   }
                   if (pct < 100) {
@@ -243,12 +262,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <LanguageProvider>
             <MotionProvider>
               {children}
               <AppToaster />
               <HydrationSignal />
+              <PageTracker />
             </MotionProvider>
           </LanguageProvider>
         </ThemeProvider>

@@ -11,10 +11,16 @@ export function DeleteButton({
   action,
   confirmMessage = "Apakah Anda yakin ingin menghapus proyek ini?",
   successMessage = "Proyek berhasil dihapus.",
+  dialogTitle = "Hapus Proyek?",
+  confirmLabel = "Hapus Proyek",
+  tooltip = "Hapus proyek",
 }: {
   action: () => Promise<ActionResult>;
   confirmMessage?: string;
   successMessage?: string;
+  dialogTitle?: string;
+  confirmLabel?: string;
+  tooltip?: string;
 }) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,16 +47,16 @@ export function DeleteButton({
         onClick={() => setDialogOpen(true)}
         className="rounded-lg border border-border p-2 text-muted transition-colors hover:border-red-400/50 hover:text-red-400 disabled:opacity-50"
         aria-label="Delete"
-        title="Hapus proyek"
+        title={tooltip}
       >
         <Trash2 className="h-4 w-4" />
       </button>
 
       <ConfirmDialog
         isOpen={dialogOpen}
-        title="Hapus Proyek?"
+        title={dialogTitle}
         description={confirmMessage}
-        confirmLabel="Hapus Proyek"
+        confirmLabel={confirmLabel}
         isLoading={isPending}
         onConfirm={handleConfirm}
         onClose={() => setDialogOpen(false)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Copy, Check, ExternalLink, Pencil, Trash2, Pin, MousePointerClick, Globe } from "lucide-react";
 import { toast } from "sonner";
@@ -18,9 +18,11 @@ export function LinksTable({ initialLinks }: { initialLinks: ShortLink[] }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
 
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initialLinks);
+  if (prevInitial !== initialLinks) {
+    setPrevInitial(initialLinks);
     setLinks(initialLinks);
-  }, [initialLinks]);
+  }
 
   function handleCopy(slug: string, id: string) {
     const fullUrl = `https://s.rajistha.my.id/${slug}`;
@@ -88,7 +90,7 @@ export function LinksTable({ initialLinks }: { initialLinks: ShortLink[] }) {
       {links.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface p-12 text-center">
           <p className="text-xs sm:text-sm text-muted font-mono">
-            Belum ada shortlink. Klik "Tambah Short Link" untuk membuat tautan pendek pertama Anda.
+            Belum ada shortlink. Klik &quot;Tambah Short Link&quot; untuk membuat tautan pendek pertama Anda.
           </p>
         </div>
       ) : (

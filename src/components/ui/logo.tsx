@@ -3,11 +3,9 @@
 export function Logo({
   size = 36,
   className = "",
-  glow = false,
 }: {
   size?: number;
   className?: string;
-  glow?: boolean;
 }) {
   return (
     <div

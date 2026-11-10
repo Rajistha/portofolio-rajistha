@@ -117,7 +117,7 @@ export function ProjectPlaceholder({ project }: { project: Project }) {
     return THEMES[hash % THEMES.length];
   }, [project.title, project.id]);
 
-  const IconComponent = useMemo(() => getProjectIcon(project.title), [project.title]);
+  const IconComponent = getProjectIcon(project.title);
   const pascalName = useMemo(() => toPascalCase(project.title) || "App", [project.title]);
   const slug = project.slug || project.title.toLowerCase().replace(/\s+/g, "-");
   const isInProgress = project.status === "in_progress";
@@ -139,7 +139,7 @@ export function ProjectPlaceholder({ project }: { project: Project }) {
       />
 
       {/* Modern Developer IDE / App Window Mockup */}
-      <div className="relative z-10 flex h-full w-full flex-col overflow-hidden rounded-lg border border-white/10 bg-[#121319]/90 backdrop-blur-md shadow-2xl transition-all duration-500 group-hover:border-white/20 group-hover:scale-[1.01]">
+      <div className="relative z-10 flex h-full w-full flex-col overflow-hidden rounded-lg border border-white/10 bg-[#121319]/90 backdrop-blur-md shadow-2xl transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] duration-500 group-hover:border-white/20 group-hover:scale-[1.01]">
         {/* Window Titlebar */}
         <div className="flex h-8 sm:h-9 items-center justify-between border-b border-white/5 bg-[#171821]/80 px-3">
           {/* Traffic light dots */}
@@ -184,6 +184,7 @@ export function ProjectPlaceholder({ project }: { project: Project }) {
                 boxShadow: `0 8px 24px ${theme.glow}`,
               }}
             >
+              {/* eslint-disable-next-line react-hooks/static-components -- stable module-level icon from getProjectIcon */}
               <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-white drop-shadow" />
             </div>
 

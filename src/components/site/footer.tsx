@@ -1,9 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
 import type { Profile } from "@/types/database";
 
-export function Footer({ name }: { name: string; profile: Profile | null }) {
+export function Footer({
+  name,
+  hasBlog = false,
+}: {
+  name: string;
+  profile: Profile | null;
+  hasBlog?: boolean;
+}) {
   const { t } = useLanguage();
 
   return (
@@ -12,6 +20,11 @@ export function Footer({ name }: { name: string; profile: Profile | null }) {
         <p>
           © {new Date().getFullYear()} {name}. {t.footer.rights}
         </p>
+        {hasBlog && (
+          <Link href="/blog" className="transition-colors hover:text-accent">
+            Blog
+          </Link>
+        )}
       </div>
     </footer>
   );

@@ -48,10 +48,7 @@ export function ImageUploader({
 
   // Auto-detect OG image in background whenever liveUrl changes
   useEffect(() => {
-    if (!liveUrl || !liveUrl.trim()) {
-      setDetectedOg(null);
-      return;
-    }
+    if (!liveUrl || !liveUrl.trim()) return;
 
     const trimmed = liveUrl.trim();
     if (!trimmed.includes(".")) return;
@@ -75,10 +72,12 @@ export function ImageUploader({
     };
   }, [liveUrl]);
 
+  const activeOg = liveUrl?.trim() ? detectedOg : null;
+
   // Determine current preview candidate
   let autoCandidate: string | null = null;
-  if (activeMode === "og" && detectedOg) {
-    autoCandidate = detectedOg;
+  if (activeMode === "og" && activeOg) {
+    autoCandidate = activeOg;
   } else if (liveScreenshotUrl) {
     autoCandidate = liveScreenshotUrl;
   } else if (githubOgUrl) {
@@ -90,11 +89,8 @@ export function ImageUploader({
 
   // Reset loading timeout fail-safe whenever preview target changes
   useEffect(() => {
-    if (!currentPreview) {
-      setImgLoading(false);
-      setImgError(false);
-      return;
-    }
+    if (!currentPreview) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset loader when the preview target changes
     setImgError(false);
     setImgLoading(true);
 

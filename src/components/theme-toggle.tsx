@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,8 +51,15 @@ export function ThemeToggle({ className }: { className?: string }) {
     // circular reveal look choppy — pause it for the duration of the wipe.
     window.dispatchEvent(new Event("theme-transition-start"));
 
+    // The new snapshot is captured right after this callback returns, so the
+    // DOM must already carry the new theme — flush React and set the class
+    // synchronously instead of waiting for next-themes' effect.
     const transition = doc.startViewTransition(() => {
-      setTheme(next);
+      flushSync(() => setTheme(next));
+      const root = document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(next);
+      root.style.colorScheme = next;
     });
 
     transition.ready.then(() => {
@@ -60,8 +68,8 @@ export function ThemeToggle({ className }: { className?: string }) {
           clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
         },
         {
-          duration: 350,
-          easing: "ease-out",
+          duration: 500,
+          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
           pseudoElement: "::view-transition-new(root)",
           fill: "forwards",
         }
@@ -69,6 +77,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       animation.finished.finally(() => {
         window.dispatchEvent(new Event("theme-transition-end"));
       });
+    }, () => {
+      window.dispatchEvent(new Event("theme-transition-end"));
     });
   }
 

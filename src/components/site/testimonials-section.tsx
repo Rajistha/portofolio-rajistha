@@ -24,8 +24,8 @@ export function TestimonialsSection({ testimonials }: { testimonials?: Testimoni
           transition={{ duration: 0.5 }}
           className="mb-12 space-y-2 text-center max-w-xl mx-auto"
         >
-          <p className="font-mono text-xs uppercase tracking-wider text-accent">
-            // 05. {isId ? "TESTIMONI & ULASAN" : "CLIENT REVIEWS"}
+          <p className="font-mono text-xs uppercase tracking-widest text-accent font-semibold">
+            {"// 05. "}{isId ? "TESTIMONI & ULASAN" : "CLIENT REVIEWS"}
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
             {isId ? "Apa Kata Mereka." : "What Clients Say."}
@@ -50,7 +50,7 @@ export function TestimonialsSection({ testimonials }: { testimonials?: Testimoni
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-30px" }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="relative flex flex-col justify-between rounded-2xl border border-border/70 bg-surface/60 p-6 backdrop-blur-xs transition-all duration-300 hover:border-accent/40 hover:bg-surface shadow-xs group"
+                className="relative flex flex-col justify-between rounded-2xl border border-border/70 bg-surface/60 p-6 transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] duration-300 hover:border-accent/40 hover:bg-surface shadow-xs group"
               >
                 {/* Top Quote Icon & Stars */}
                 <div className="space-y-4 mb-4">
@@ -64,7 +64,7 @@ export function TestimonialsSection({ testimonials }: { testimonials?: Testimoni
                   </div>
 
                   <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed italic">
-                    "{content}"
+                    &ldquo;{content}&rdquo;
                   </p>
                 </div>
 

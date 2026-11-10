@@ -17,7 +17,7 @@ export function PublicLinkCard({ link }: { link: ShortLink }) {
   }
 
   return (
-    <div className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 rounded-2xl border border-border/70 bg-surface/80 p-4 backdrop-blur-md transition-all duration-300 hover:border-accent/40 hover:bg-surface-2/60 hover:shadow-lg hover:shadow-black/20">
+    <div className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 rounded-2xl border border-border/70 bg-surface/80 p-4 backdrop-blur-md transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] duration-300 hover:border-accent/40 hover:bg-surface-2/60 hover:shadow-lg hover:shadow-black/20">
       <div className="min-w-0 space-y-1">
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm font-bold text-accent transition-colors group-hover:text-accent">

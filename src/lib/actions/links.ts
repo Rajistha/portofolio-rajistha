@@ -90,9 +90,9 @@ export async function recordClick(slug: string): Promise<void> {
 
 export async function createShortLink(formData: FormData, isPublic = false): Promise<ActionResult> {
   let destination = String(formData.get("destination_url") ?? "").trim();
-  let rawSlug = String(formData.get("slug") ?? "").trim();
+  const rawSlug = String(formData.get("slug") ?? "").trim();
   let title = String(formData.get("title") ?? "").trim();
-  let description = String(formData.get("description") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
   const isPinned = isPublic ? false : formData.get("is_pinned") === "on";
 
   if (!destination) {

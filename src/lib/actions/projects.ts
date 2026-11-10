@@ -17,6 +17,13 @@ function slugify(input: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+/** Drops `status` for databases that haven't run the add-project-status migration yet. */
+function omitStatus<T extends { status?: unknown }>(project: T): Omit<T, "status"> {
+  const copy = { ...project };
+  delete copy.status;
+  return copy;
+}
+
 function parseProjectForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const techStackIds = formData.getAll("tech_stack_ids").map(String);
@@ -59,7 +66,7 @@ export async function createProject(formData: FormData): Promise<ActionResult> {
   let { data, error } = await supabase.from("projects").insert(project).select("id").single();
   if (error && error.message.toLowerCase().includes("status")) {
     // Graceful fallback if database migration hasn't been executed yet
-    const { status: _status, ...projectWithoutStatus } = project;
+    const projectWithoutStatus = omitStatus(project);
     const retry = await supabase.from("projects").insert(projectWithoutStatus).select("id").single();
     if (retry.error) return { error: retry.error.message };
     data = retry.data;
@@ -103,7 +110,7 @@ export async function updateProject(projectId: string, formData: FormData): Prom
   let { error } = await supabase.from("projects").update(project).eq("id", projectId);
   if (error && error.message.toLowerCase().includes("status")) {
     // Graceful fallback if database migration hasn't been executed yet
-    const { status: _status, ...projectWithoutStatus } = project;
+    const projectWithoutStatus = omitStatus(project);
     const retry = await supabase.from("projects").update(projectWithoutStatus).eq("id", projectId);
     if (retry.error) return { error: retry.error.message };
     error = null;

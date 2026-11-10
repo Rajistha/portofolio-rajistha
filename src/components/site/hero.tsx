@@ -5,7 +5,9 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Download } from "lucide-react";
 import { Typewriter } from "@/components/ui/typewriter";
+import { StaticBadge } from "@/components/site/static-badge";
 import { useLanguage } from "@/components/language-provider";
+import { trackEvent } from "@/lib/track";
 import type { Profile } from "@/types/database";
 
 const Lanyard = dynamic(() => import("@/components/site/lanyard").then((mod) => mod.Lanyard), {
@@ -18,9 +20,29 @@ const Lanyard = dynamic(() => import("@/components/site/lanyard").then((mod) => 
   ),
 });
 
-export function Hero({ profile }: { profile: Profile | null }) {
+type NavigatorHints = Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+
+/** The 3D card is skipped for visitors who asked for less motion or are on a constrained device. */
+function prefersLightweightHero() {
+  const nav = navigator as NavigatorHints;
+  return (
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    nav.connection?.saveData === true ||
+    (nav.deviceMemory !== undefined && nav.deviceMemory <= 2) ||
+    (nav.hardwareConcurrency !== undefined && nav.hardwareConcurrency <= 2)
+  );
+}
+
+export function Hero({ profile, lanyardEnabled = true }: { profile: Profile | null; lanyardEnabled?: boolean }) {
   const { t } = useLanguage();
   const [isDesktop, setIsDesktop] = useState(false);
+  const [lightweight, setLightweight] = useState(false);
+
+  useEffect(() => {
+    // Browser capability hints are only readable after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLightweight(prefersLightweightHero());
+  }, []);
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -34,7 +56,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
   const tagline = profile?.tagline ?? "I build fast, accessible, beautiful interfaces.";
 
   return (
-    <section className="relative flex min-h-screen items-center px-4 sm:px-6 pt-24 pb-16 sm:pt-28 sm:pb-20">
+    <section className="relative flex min-h-svh items-center px-4 sm:px-6 pt-24 pb-16 sm:pt-28 sm:pb-20">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hero-grid" />
 
       <div className="mx-auto grid w-full max-w-5xl items-center gap-8">
@@ -86,6 +108,7 @@ export function Hero({ profile }: { profile: Profile | null }) {
                 target="_blank"
                 rel="noreferrer"
                 download
+                onClick={() => trackEvent("cv_download")}
                 className="group inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm text-foreground/90 transition-colors hover:border-accent/60 hover:text-accent"
               >
                 <Download className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -96,7 +119,9 @@ export function Hero({ profile }: { profile: Profile | null }) {
         </div>
       </div>
 
-      {isDesktop && (
+      {isDesktop && (!lanyardEnabled || lightweight) && <StaticBadge profile={profile} />}
+
+      {isDesktop && lanyardEnabled && !lightweight && (
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}

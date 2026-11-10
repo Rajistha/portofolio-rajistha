@@ -103,3 +103,47 @@ export type Testimonial = {
   sort_order: number;
   created_at?: string;
 };
+
+export type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  title_en: string | null;
+  excerpt: string;
+  excerpt_en: string | null;
+  content: string;
+  content_en: string | null;
+  cover_url: string | null;
+  tags: string[];
+  published: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+};
+
+export type AnalyticsEventType = "view" | "cv_download" | "project_open" | "contact_click";
+
+export type AnalyticsEvent = {
+  id: number;
+  type: AnalyticsEventType;
+  path: string;
+  label: string | null;
+  referrer: string | null;
+  device: string | null;
+  created_at: string;
+};
+
+export type SiteSettings = {
+  preloader_enabled: boolean;
+  lanyard_enabled: boolean;
+};

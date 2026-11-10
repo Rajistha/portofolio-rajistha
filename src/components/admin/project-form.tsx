@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Clock, FileText } from "lucide-react";
+import { Loader2, CheckCircle2, FileText } from "lucide-react";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { TechIcon } from "@/components/ui/tech-icon";
@@ -215,7 +215,7 @@ export function ProjectForm({
         </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <label
-            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] ${
               status === "completed"
                 ? "border-accent/60 bg-accent/5 shadow-xs"
                 : "border-border bg-surface hover:border-border/80"
@@ -241,7 +241,7 @@ export function ProjectForm({
           </label>
 
           <label
-            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all ${
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] ${
               status === "in_progress"
                 ? "border-amber-500/60 bg-amber-500/5 shadow-xs"
                 : "border-border bg-surface hover:border-border/80"

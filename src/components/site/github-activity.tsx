@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
 import { GitCommit, Flame, Trophy, ExternalLink } from "lucide-react";
 import { GithubIcon } from "@/components/ui/brand-icons";
 import { useLanguage } from "@/components/language-provider";
@@ -15,19 +15,25 @@ export function GitHubActivity({
 }) {
   const { language } = useLanguage();
   const isId = language === "id";
+  const sectionRef = useRef<HTMLElement>(null);
+  // Third-party request + large render: wait until the section is close to the viewport.
+  const nearViewport = useInView(sectionRef, { once: true, margin: "400px" });
   const [hoveredCell, setHoveredCell] = useState<{ date: string; count: number } | null>(null);
 
   // Fallback initial data (past 52 weeks = 364 days)
   const fallbackData = useMemo(() => {
+    // Deterministic per UTC day: it must render identically on the server and in
+    // the browser (any local-time or millisecond-based value breaks hydration).
     const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
     const cells: { date: string; count: number; level: number }[] = [];
     let total = 0;
 
     for (let i = 363; i >= 0; i--) {
       const d = new Date(today);
-      d.setDate(d.getDate() - i);
+      d.setUTCDate(d.getUTCDate() - i);
       const dateStr = d.toISOString().split("T")[0];
-      const dayOfWeek = d.getDay();
+      const dayOfWeek = d.getUTCDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const pseudo = (Math.sin(d.getTime() * 0.0000001) + 1) / 2;
       let count = 0;
@@ -64,6 +70,7 @@ export function GitHubActivity({
 
   // Fetch real GitHub contribution data via public API
   useEffect(() => {
+    if (!nearViewport) return;
     let active = true;
 
     async function fetchRealGithubData() {
@@ -133,9 +140,9 @@ export function GitHubActivity({
     return () => {
       active = false;
     };
-  }, [username]);
+  }, [username, nearViewport]);
 
-  const { weeks, totalContribs, currentStreak, longestStreak, isRealData } = activityData;
+  const { weeks, totalContribs, currentStreak, longestStreak } = activityData;
 
   const levelColors = [
     "bg-surface-2 border-border/30",
@@ -148,7 +155,7 @@ export function GitHubActivity({
   const targetUrl = githubUrl || `https://github.com/${username}`;
 
   return (
-    <section className="relative py-12 sm:py-16 px-4 sm:px-6 border-t border-border/50">
+    <section ref={sectionRef} className="relative py-12 sm:py-16 px-4 sm:px-6 border-t border-border/50">
       <div className="mx-auto max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -192,7 +199,7 @@ export function GitHubActivity({
               </div>
               <div className="min-w-0">
                 <span className="font-display font-bold text-base sm:text-xl text-foreground block leading-tight">
-                  {totalContribs.toLocaleString()}
+                  {totalContribs.toLocaleString("en-US")}
                 </span>
                 <span className="text-[9px] sm:text-xs font-mono text-muted uppercase leading-tight block">
                   {isId ? "Kontribusi" : "Commits"}

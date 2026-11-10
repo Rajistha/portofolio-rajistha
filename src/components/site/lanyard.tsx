@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useTheme } from "next-themes";
 import { Canvas, extend, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Environment, Lightformer, useGLTF, useTexture } from "@react-three/drei";
@@ -353,6 +353,12 @@ export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
   const [transitioning, setTransitioning] = useState(false);
   const [inView, setInView] = useState(true);
+  // Bumping the key mounts a brand-new <canvas>. A lost WebGL context can't be
+  // revived on the same element, which is what happens in dev under StrictMode
+  // (the discarded first renderer force-loses the context the second one reuses)
+  // and for real visitors when the GPU drops the context.
+  const [canvasKey, setCanvasKey] = useState(0);
+  const remountsRef = useRef(0);
   const [readyToDrop, setReadyToDrop] = useState(() => {
     if (typeof window === "undefined") return false;
     return !window.__preloader_active;
@@ -417,6 +423,20 @@ export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
     };
   }, []);
 
+  const handleCanvasCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
+    gl.setClearColor(new THREE.Color(0x000000), 0);
+
+    const canvas = gl.domElement;
+    const onContextLost = (event: Event) => {
+      // Without preventDefault the browser will never fire "restored".
+      event.preventDefault();
+      if (remountsRef.current >= 3) return;
+      remountsRef.current += 1;
+      setCanvasKey((key) => key + 1);
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost, { once: true });
+  }, []);
+
   if (!mounted) return null;
 
   const isPaused = transitioning || !readyToDrop || !inView;
@@ -424,11 +444,12 @@ export function Lanyard({ photoUrl }: { photoUrl?: string | null }) {
   return (
     <div ref={containerRef} className="relative h-full w-full">
       <Canvas
+        key={canvasKey}
         camera={{ position: [0, CAMERA_Y, CAMERA_DISTANCE], rotation: [0, 0, 0], fov: CAMERA_FOV }}
         dpr={[1, 1.5]}
         gl={{ alpha: true, powerPreference: "high-performance", antialias: true }}
         frameloop={isPaused ? "never" : "always"}
-        onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 0)}
+        onCreated={handleCanvasCreated}
       >
         <ClockResetOnResume paused={isPaused} />
         <ambientLight intensity={Math.PI} />

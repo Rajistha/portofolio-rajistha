@@ -75,7 +75,7 @@ export function PublicShortenerForm() {
             <label className="block text-xs font-mono uppercase tracking-wider text-muted">
               URL Tujuan
             </label>
-            <div className="relative flex items-center rounded-2xl border border-border/80 bg-surface-2/60 transition-all focus-within:border-accent/60 focus-within:bg-background focus-within:ring-2 focus-within:ring-accent/15">
+            <div className="relative flex items-center rounded-2xl border border-border/80 bg-surface-2/60 transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] focus-within:border-accent/60 focus-within:bg-background focus-within:ring-2 focus-within:ring-accent/15">
               <Link2 className="absolute left-4 h-4 w-4 text-muted pointer-events-none shrink-0" />
               <input
                 type="url"
@@ -105,7 +105,7 @@ export function PublicShortenerForm() {
               Custom Alias <span className="text-muted/60 lowercase font-normal">(opsional)</span>
             </label>
 
-            <div className="flex items-center rounded-2xl border border-border/80 bg-surface-2/60 px-4 py-1.5 transition-all focus-within:border-accent/60 focus-within:bg-background focus-within:ring-2 focus-within:ring-accent/15">
+            <div className="flex items-center rounded-2xl border border-border/80 bg-surface-2/60 px-4 py-1.5 transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] focus-within:border-accent/60 focus-within:bg-background focus-within:ring-2 focus-within:ring-accent/15">
               <span className="font-mono text-xs sm:text-sm text-muted shrink-0 select-none pr-1">
                 s.rajistha.my.id/
               </span>
@@ -148,7 +148,7 @@ export function PublicShortenerForm() {
           <button
             type="submit"
             disabled={isPending || !url.trim()}
-            className="group w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3.5 text-sm font-semibold text-background transition-all hover:opacity-95 hover:shadow-lg hover:shadow-accent/25 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+            className="group w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3.5 text-sm font-semibold text-background transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] hover:opacity-95 hover:shadow-lg hover:shadow-accent/25 active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
           >
             {isPending ? (
               <>

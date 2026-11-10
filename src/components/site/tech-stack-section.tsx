@@ -3,6 +3,8 @@
 import { Reveal, RevealStagger, RevealStaggerItem } from "@/components/ui/reveal";
 import { TechIcon } from "@/components/ui/tech-icon";
 import { useLanguage } from "@/components/language-provider";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Cpu } from "lucide-react";
 import type { TechStack } from "@/types/database";
 
 export function TechStackSection({ techStacks }: { techStacks: TechStack[] }) {
@@ -12,12 +14,12 @@ export function TechStackSection({ techStacks }: { techStacks: TechStack[] }) {
   return (
     <section id="stack" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">
       <Reveal>
-        <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">// 02. TECH STACK</p>
+        <p className="mb-2 font-mono text-xs uppercase tracking-widest text-accent font-semibold">{"// 03. TECH STACK"}</p>
         <h2 className="mb-14 font-display text-3xl sm:text-4xl">{t.stack.title}</h2>
       </Reveal>
 
       {techStacks.length === 0 ? (
-        <p className="text-muted">{t.stack.empty}</p>
+        <EmptyState icon={Cpu} title={t.stack.empty} />
       ) : (
         <div className="space-y-10">
           {categories.map((category) => (
@@ -40,7 +42,7 @@ export function TechStackSection({ techStacks }: { techStacks: TechStack[] }) {
                             className={
                               isMono
                                 ? "icon-mono opacity-80 transition-opacity group-hover:opacity-100"
-                                : "opacity-80 grayscale transition-all group-hover:grayscale-0 group-hover:opacity-100"
+                                : "opacity-80 grayscale transition-[color,background-color,border-color,box-shadow,transform,opacity,filter] group-hover:grayscale-0 group-hover:opacity-100"
                             }
                           />
                           <span className="text-sm text-foreground/90">{tech.name}</span>

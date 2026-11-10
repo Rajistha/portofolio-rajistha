@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, BarChart3, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -16,9 +16,11 @@ export function StatsManager({ initialStats }: { initialStats: PortfolioStat[] }
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initialStats);
+  if (prevInitial !== initialStats) {
+    setPrevInitial(initialStats);
     setStats(initialStats);
-  }, [initialStats]);
+  }
 
   function handleConfirmDelete() {
     if (!deleteTarget) return;
@@ -77,7 +79,7 @@ export function StatsManager({ initialStats }: { initialStats: PortfolioStat[] }
           <BarChart3 className="mx-auto h-8 w-8 text-muted/60 mb-3" />
           <p className="text-sm font-medium text-foreground">Belum ada data statistik</p>
           <p className="text-xs text-muted mt-1">
-            Klik tombol "Tambah Statistik" untuk menambahkan angka pencapaian pertama Anda.
+            Klik tombol &quot;Tambah Statistik&quot; untuk menambahkan angka pencapaian pertama Anda.
           </p>
         </div>
       ) : (

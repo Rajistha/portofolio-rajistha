@@ -13,7 +13,7 @@ function CountingNumber({ target, suffix = "" }: { target: number; suffix: strin
   useEffect(() => {
     if (!inView) return;
 
-    let start = 0;
+    const start = 0;
     const duration = 1600; // ms
     const startTime = performance.now();
 
