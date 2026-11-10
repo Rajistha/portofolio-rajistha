@@ -56,6 +56,7 @@ export async function updateProfile(profileId: string, formData: FormData): Prom
   }
 
   revalidatePath("/");
+  revalidatePath("/cv");
   revalidatePath("/admin/profile");
   return {};
 }

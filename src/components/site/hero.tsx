@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Download } from "lucide-react";
@@ -20,6 +20,8 @@ const Lanyard = dynamic(() => import("@/components/site/lanyard").then((mod) => 
   ),
 });
 
+const CvViewer = dynamic(() => import("@/components/site/cv-viewer").then((mod) => mod.CvViewer), { ssr: false });
+
 type NavigatorHints = Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
 
 /** The 3D card is skipped for visitors who asked for less motion or are on a constrained device. */
@@ -37,6 +39,8 @@ export function Hero({ profile, lanyardEnabled = true }: { profile: Profile | nu
   const { t } = useLanguage();
   const [isDesktop, setIsDesktop] = useState(false);
   const [lightweight, setLightweight] = useState(false);
+  const [cvOpen, setCvOpen] = useState(false);
+  const closeCv = useCallback(() => setCvOpen(false), []);
 
   useEffect(() => {
     // Browser capability hints are only readable after mount.
@@ -103,16 +107,17 @@ export function Hero({ profile, lanyardEnabled = true }: { profile: Profile | nu
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
             {profile?.cv_url && (
-              <a
-                href="/cv"
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => trackEvent("cv_download")}
+              <button
+                type="button"
+                onClick={() => {
+                  setCvOpen(true);
+                  trackEvent("cv_download");
+                }}
                 className="group inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm text-foreground/90 transition-colors hover:border-accent/60 hover:text-accent"
               >
                 <Download className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
                 {t.hero.downloadCv}
-              </a>
+              </button>
             )}
           </motion.div>
         </div>
@@ -130,6 +135,9 @@ export function Hero({ profile, lanyardEnabled = true }: { profile: Profile | nu
         >
           <Lanyard photoUrl={profile?.avatar_url} />
         </motion.div>
+      )}
+      {cvOpen && profile?.cv_url && (
+        <CvViewer name={profile.name ?? "Rajistha"} src={profile.cv_url} onClose={closeCv} />
       )}
     </section>
   );

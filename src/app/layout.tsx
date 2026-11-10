@@ -102,6 +102,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               (function() {
                 // Skipped when turned off in admin settings or the visitor prefers reduced motion.
                 if (!${settings.preloader_enabled}) return;
+                // The intro belongs to the landing experience only — not the CV viewer or admin.
+                if (['/cv', '/admin'].some(function(p) { return location.pathname === p || location.pathname.indexOf(p + '/') === 0; })) return;
                 try {
                   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
                 } catch(e) {}

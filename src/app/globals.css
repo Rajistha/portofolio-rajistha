@@ -314,3 +314,12 @@ body {
   max-width: 100%;
   border-radius: 0.75rem;
 }
+
+@keyframes cv-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

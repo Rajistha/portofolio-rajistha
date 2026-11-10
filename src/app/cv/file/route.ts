@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
  * only ever sees this site's domain, never the storage host.
  */
 export async function GET(request: Request) {
-  const { data } = await createPublicClient().from("profile").select("cv_url").limit(1).maybeSingle();
+  const { data } = await createPublicClient().from("profile").select("cv_url, name").limit(1).maybeSingle();
   const cvUrl = data?.cv_url;
   if (!cvUrl) return NextResponse.redirect(new URL("/", request.url));
 
@@ -16,13 +16,14 @@ export async function GET(request: Request) {
   if (!upstream.ok || !upstream.body) return NextResponse.redirect(new URL("/", request.url));
 
   const ext = new URL(cvUrl).pathname.split(".").pop()?.toLowerCase() || "pdf";
+  const fileName = `Curriculum vitae (CV) ${data?.name ?? "Puja Rajistha"}.${ext}`;
   const download = new URL(request.url).searchParams.has("download");
 
   return new Response(upstream.body, {
     headers: {
       "Content-Type": upstream.headers.get("content-type") ?? "application/pdf",
-      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="cv-puja-rajistha.${ext}"`,
-      "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${fileName.replace(/[^ -~]/g, "")}"; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+      "Cache-Control": "public, max-age=0, s-maxage=60",
     },
   });
 }
