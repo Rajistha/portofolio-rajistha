@@ -113,7 +113,7 @@ export function ProjectCard({ project }: { project: Project }) {
                     className="group/tip relative flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted transition-colors hover:border-accent/50 hover:text-accent"
                   >
                     <TechIcon slug="github" name="GitHub" size={16} className="icon-mono" />
-                    <span className="pointer-events-none absolute -top-9 right-0 z-10 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100">
+                    <span className="pointer-events-none absolute -top-9 right-0 z-30 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100">
                       {t.work.sourceCode}
                     </span>
                   </a>
@@ -127,7 +127,7 @@ export function ProjectCard({ project }: { project: Project }) {
                     className="group/tip relative flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted transition-colors hover:border-accent/50 hover:text-accent"
                   >
                     <ArrowUpRight className="h-4 w-4" />
-                    <span className="pointer-events-none absolute -top-9 right-0 z-10 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100">
+                    <span className="pointer-events-none absolute -top-9 right-0 z-30 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100">
                       {t.work.liveDemo}
                     </span>
                   </a>
