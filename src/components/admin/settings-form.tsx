@@ -64,8 +64,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           >
             <span
               className={cn(
-                "absolute top-0.5 h-4.5 w-4.5 rounded-full transition-transform",
-                values[key] ? "translate-x-5.5 bg-accent" : "translate-x-0.5 bg-muted"
+                "absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full transition-transform",
+                values[key] ? "translate-x-5 bg-accent" : "translate-x-0 bg-muted"
               )}
             />
           </button>

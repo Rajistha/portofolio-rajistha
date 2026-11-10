@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult } from "@/lib/actions/projects";
+import { slugifyFilename, withUniqueSuffix } from "@/lib/slug";
 
 const ALLOWED_BUCKETS = ["project-images", "avatars", "documents"] as const;
 type UploadBucket = (typeof ALLOWED_BUCKETS)[number];
@@ -39,12 +40,16 @@ export async function createSignedUploadUrl(
     }
   }
 
-  const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = folder ? `${folder}/${Date.now()}-${cleanName}` : `${Date.now()}-${cleanName}`;
+  const cleanName = slugifyFilename(filename);
+  const prefix = folder ? `${folder}/` : "";
 
-  const { data, error } = await admin.storage
-    .from(bucket)
-    .createSignedUploadUrl(path, { upsert: true });
+  // Clean, timestamp-free name; on a name clash add a short random suffix.
+  let path = `${prefix}${cleanName}`;
+  let { data, error } = await admin.storage.from(bucket).createSignedUploadUrl(path);
+  if (error) {
+    path = `${prefix}${withUniqueSuffix(cleanName)}`;
+    ({ data, error } = await admin.storage.from(bucket).createSignedUploadUrl(path));
+  }
 
   if (error || !data) return { error: error?.message ?? "Failed to create upload URL." };
 
@@ -82,7 +87,7 @@ export async function uploadImage(
   }
 
   const admin = createAdminClient();
-  const path = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+  const path = withUniqueSuffix(slugifyFilename(file.name, "image"));
 
   const { error: uploadError } = await admin.storage
     .from(bucket)
@@ -135,8 +140,7 @@ export async function uploadCvFile(
     console.error("Bucket ensure error:", err);
   }
 
-  const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const path = `cv/${Date.now()}-${cleanName}`;
+  const path = `cv/${withUniqueSuffix(slugifyFilename(file.name, "cv"))}`;
 
   const { error: uploadError } = await admin.storage
     .from(bucket)
