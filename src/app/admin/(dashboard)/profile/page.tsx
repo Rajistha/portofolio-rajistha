@@ -6,7 +6,7 @@ export default async function AdminProfilePage() {
   const profile = await getProfile();
 
   if (!profile) {
-    return <p className="text-muted">No profile row found. Run the schema.sql seed first.</p>;
+    return <p className="text-muted">Data profil belum tersedia.</p>;
   }
 
   const action = updateProfile.bind(null, profile.id);

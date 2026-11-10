@@ -136,7 +136,7 @@ export function ImageUploader({
 
       setUrl(signed.publicUrl);
       setImgError(false);
-      toast.success("Gambar berhasil diunggah langsung ke Supabase.");
+      toast.success("Gambar berhasil diunggah.");
     } catch (err) {
       const message = friendlyErrorMessage(err);
       setError(message);

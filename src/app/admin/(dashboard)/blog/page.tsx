@@ -38,7 +38,7 @@ export default async function AdminBlogPage() {
         <EmptyState
           icon={FileText}
           title="Belum ada tulisan"
-          description="Buat tulisan pertama. Jika tabel blog_posts belum ada, jalankan supabase/add-blog-inbox-analytics.sql di Supabase."
+          description="Buat tulisan pertama Anda."
         />
       ) : (
         <div className="space-y-3">

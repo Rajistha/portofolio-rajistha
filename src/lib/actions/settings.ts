@@ -23,10 +23,9 @@ export async function saveSiteSettings(settings: {
       updated_at: new Date().toISOString(),
     });
   if (error) {
+    console.error("save site_settings:", error.message);
     return {
-      error: error.message.includes("site_settings")
-        ? "Tabel site_settings belum ada. Jalankan supabase/add-blog-inbox-analytics.sql terlebih dahulu."
-        : error.message,
+      error: "Gagal menyimpan pengaturan. Silakan coba lagi.",
     };
   }
 

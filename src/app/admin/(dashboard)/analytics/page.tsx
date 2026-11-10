@@ -93,7 +93,7 @@ export default async function AdminAnalyticsPage({
         <EmptyState
           icon={BarChart3}
           title="Data analytics belum tersedia"
-          description="Tabel analytics_events belum ada. Jalankan supabase/add-blog-inbox-analytics.sql di Supabase SQL Editor."
+          description="Data pengunjung akan tampil di sini setelah ada yang membuka website."
         />
       ) : (
         <div className="space-y-8">

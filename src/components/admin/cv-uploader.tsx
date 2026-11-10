@@ -87,7 +87,7 @@ export function CvUploader({
       setUrl(signed.publicUrl);
       setFileName(file.name);
       setProgress(100);
-      toast.success("File CV berhasil diunggah langsung ke Supabase.");
+      toast.success("File CV berhasil diunggah.");
     } catch (err) {
       const message = friendlyErrorMessage(err);
       setError(message);
@@ -184,13 +184,13 @@ export function CvUploader({
             {fileName
               ? `File: ${fileName}`
               : isUploadedToSupabase
-              ? "File tersimpan di Supabase Storage"
+              ? "File CV tersimpan"
               : `Link aktif: ${url}`}
           </span>
         </div>
       ) : (
         <p className="text-[11px] text-muted">
-          Format didukung: PDF, Word (.doc, .docx). Upload langsung ke Supabase — tidak ada batas ukuran Vercel.
+          Format didukung: PDF, Word (.doc, .docx).
           Anda juga bisa menempelkan link Google Drive / Dropbox.
         </p>
       )}

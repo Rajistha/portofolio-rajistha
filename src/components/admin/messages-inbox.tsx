@@ -84,7 +84,7 @@ export function MessagesInbox({ initialMessages }: { initialMessages: ContactMes
         <EmptyState
           icon={Inbox}
           title="Belum ada pesan"
-          description="Pesan dari formulir kontak di website akan muncul di sini. Jika tabel contact_messages belum ada, jalankan supabase/add-blog-inbox-analytics.sql."
+          description="Pesan dari formulir kontak di website akan muncul di sini."
         />
       ) : (
         <div className="space-y-3">
