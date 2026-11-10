@@ -12,6 +12,8 @@ const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 2;
 const ZOOM_STEP = 0.2;
 const MAX_PAGE_WIDTH = 880;
+// iOS Safari caps a canvas at ~16.7M pixels.
+const MAX_CANVAS_PIXELS = 16_000_000;
 // JPEG2000/other decoders pdf.js loads on demand (e.g. the photo in the CV).
 const WASM_URL = "/pdfjs/wasm/";
 
@@ -84,7 +86,8 @@ export function CvViewer({ name, src, onClose }: { name: string; src: string; on
 
     (async () => {
       const targetWidth = Math.min(MAX_PAGE_WIDTH, width - 32) * zoom;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Render at least 3x (even on 1x screens) so text stays crisp; up to 4x on dense screens.
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 3), 4);
       const canvases: HTMLCanvasElement[] = [];
       // First paint: show each page as soon as it's ready instead of waiting for all.
       const progressive = host.childElementCount === 0;
@@ -93,13 +96,17 @@ export function CvViewer({ name, src, onClose }: { name: string; src: string; on
         const pg = await pdf.getPage(n);
         if (cancelled) return;
         const base = pg.getViewport({ scale: 1 });
-        const viewport = pg.getViewport({ scale: (targetWidth / base.width) * dpr });
+        const cssScale = targetWidth / base.width;
+        // Keep the canvas under mobile browsers' size limit by lowering the pixel ratio if needed.
+        const area = base.width * cssScale * base.height * cssScale;
+        const ratio = Math.min(dpr, Math.sqrt(MAX_CANVAS_PIXELS / area));
+        const viewport = pg.getViewport({ scale: cssScale * ratio });
 
         const canvas = document.createElement("canvas");
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
-        canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
-        canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+        canvas.style.width = `${Math.floor(base.width * cssScale)}px`;
+        canvas.style.height = `${Math.floor(base.height * cssScale)}px`;
         canvas.className = "block max-w-none rounded-md bg-white shadow-2xl shadow-black/30 ring-1 ring-border";
 
         const task = pg.render({ canvas, viewport });
@@ -139,7 +146,7 @@ export function CvViewer({ name, src, onClose }: { name: string; src: string; on
     <div
       className={
         overlay
-          ? "fixed inset-0 z-[200] flex animate-[cv-fade_0.18s_ease-out] flex-col bg-black/85 backdrop-blur-sm"
+          ? "fixed inset-0 z-200 flex animate-[cv-fade_0.18s_ease-out] flex-col bg-black/85 backdrop-blur-sm"
           : "fixed inset-0 z-50 flex flex-col bg-background"
       }
       role={overlay ? "dialog" : undefined}
