@@ -1,6 +1,6 @@
 "use client";
 
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { Reveal } from "@/components/ui/reveal";
 import { useLanguage } from "@/components/language-provider";
 import type { Profile } from "@/types/database";
@@ -11,7 +11,7 @@ export function AboutSection({ profile }: { profile: Profile | null }) {
     language === "en"
       ? profile?.bio_en || profile?.bio
       : profile?.bio || profile?.bio_en;
-  const bioHtml = DOMPurify.sanitize(bio || `<p>${t.about.defaultBio}</p>`);
+  const bioHtml = sanitizeHtml(bio || `<p>${t.about.defaultBio}</p>`);
 
   return (
     <section id="about" className="mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-24">

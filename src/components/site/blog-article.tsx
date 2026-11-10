@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { Reveal } from "@/components/ui/reveal";
 import { BlogCard } from "@/components/site/blog-card";
 import { CopyLinkButton } from "@/components/site/copy-link-button";
@@ -13,7 +13,7 @@ import type { BlogPost } from "@/types/database";
 export function BlogArticle({ post, related }: { post: BlogPost; related: BlogPost[] }) {
   const { language, t } = useLanguage();
   const { title, excerpt, content } = localizedPost(post, language);
-  const html = DOMPurify.sanitize(content);
+  const html = sanitizeHtml(content);
 
   return (
     <article className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">

@@ -22,7 +22,6 @@
     "@types/three": "^0.185.4",
     "clsx": "^2.1.1",
     "framer-motion": "^13.2.0",
-    "isomorphic-dompurify": "^3.19.0",
     "lucide-react": "^1.43.0",
     "meshline": "^3.3.1",
     "next": "16.3.4",
@@ -34,6 +33,7 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "three": "^0.186.0",
+    "xss": "^1.0.17",
     "zod": "^4.5.4"
   },
   "devDependencies": {
