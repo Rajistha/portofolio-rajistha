@@ -104,10 +104,9 @@ export function Hero({ profile, lanyardEnabled = true }: { profile: Profile | nu
             </a>
             {profile?.cv_url && (
               <a
-                href="/cv?download"
+                href="/cv"
                 target="_blank"
                 rel="noreferrer"
-                download
                 onClick={() => trackEvent("cv_download")}
                 className="group inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-sm text-foreground/90 transition-colors hover:border-accent/60 hover:text-accent"
               >

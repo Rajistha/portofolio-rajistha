@@ -108,7 +108,7 @@ export function CvUploader({
         <label className="block text-xs uppercase tracking-wide text-muted">{label}</label>
         {url && (
           <a
-            href={url}
+            href="/cv"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs text-accent hover:underline"

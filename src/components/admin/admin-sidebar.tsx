@@ -55,13 +55,13 @@ export function AdminSidebar({
   useDismissableOverlay(open, () => setOpen(false));
 
   const nav = (
-    <nav className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain scrollbar-none" aria-label="Admin">
+    <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain scrollbar-none" aria-label="Admin">
       {navSections.map((section) => (
         <div key={section.title}>
-          <p className="mb-2 px-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted/70">
+          <p className="mb-1.5 px-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted/70">
             {section.title}
           </p>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-0.5">
             {section.items.map((item) => {
               const active =
                 pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
@@ -71,7 +71,7 @@ export function AdminSidebar({
                   href={item.href}
                   onClick={() => setOpen(false)}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
                     active ? "bg-surface text-foreground" : "text-muted hover:bg-surface hover:text-foreground"
                   }`}
                 >
@@ -92,7 +92,7 @@ export function AdminSidebar({
   );
 
   const account = (
-    <div className="mt-4 shrink-0 border-t border-border pt-4">
+    <div className="mt-3 shrink-0 border-t border-border pt-3">
       <p className="mb-3 truncate text-xs text-muted">{userEmail}</p>
       <form action={signOut}>
         <button
@@ -111,8 +111,8 @@ export function AdminSidebar({
       {/* Desktop sidebar — pinned to the viewport height (dvh follows mobile
           browser chrome) and independent of the page: only the menu scrolls,
           the header and account block stay in place. */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-hidden border-r border-border p-6 sm:flex">
-        <div className="mb-8 flex shrink-0 items-center justify-between">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-border bg-background p-5 sm:flex">
+        <div className="mb-5 flex shrink-0 items-center justify-between">
           <p className="font-display text-xl">
             Admin<span className="text-accent">.</span>
           </p>
