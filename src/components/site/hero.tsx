@@ -104,7 +104,7 @@ export function Hero({ profile, lanyardEnabled = true }: { profile: Profile | nu
             </a>
             {profile?.cv_url && (
               <a
-                href={profile.cv_url}
+                href="/cv?download"
                 target="_blank"
                 rel="noreferrer"
                 download
