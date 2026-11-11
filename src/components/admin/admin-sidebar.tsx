@@ -4,7 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutDashboard, FolderKanban, Cpu, UserRound, LogOut, Menu, X, Link2, Briefcase, MessageSquare, BarChart3, PenLine, Inbox, Activity, Settings } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Cpu, UserRound, LogOut, Menu, X, Link2, Briefcase, MessageSquare, BarChart3, PenLine, Inbox, Activity, Settings, Database } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/admin/notification-bell";
 import type { UnreadSummary } from "@/lib/admin-data";
@@ -36,6 +36,7 @@ const navSections = [
       { href: "/admin/profile", label: "Profile", icon: UserRound },
       { href: "/admin/links", label: "Short Links", icon: Link2 },
       { href: "/admin/settings", label: "Pengaturan", icon: Settings },
+      { href: "/admin/system", label: "Sistem", icon: Database },
     ],
   },
 ];
